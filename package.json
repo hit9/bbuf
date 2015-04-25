@@ -1,6 +1,6 @@
 {
   "name": "iobuf",
-  "description": "Dymatic utf8 buffer module for nodejs/iojs.",
+  "description": "Dynamic utf8 buffer module for nodejs/iojs.",
   "version": "0.0.1",
   "author": "hit9 <hit9@icloud.com>",
   "engines": {
