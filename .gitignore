@@ -1,0 +1,5 @@
+.*.sw[opn]
+node_modules
+build
+*.o
+test.js
