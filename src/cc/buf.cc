@@ -17,16 +17,21 @@ Buf::~Buf() {
  */
 void Buf::Initialize(Handle<Object> exports) {
     NanScope();
-    Local<FunctionTemplate> t = NanNew<FunctionTemplate>(New);
-    t->InstanceTemplate()->SetInternalFieldCount(1);
-    NODE_SET_PROTOTYPE_METHOD(t, "cap", Cap);
-    NODE_SET_PROTOTYPE_METHOD(t, "clear", Clear);
-    NODE_SET_PROTOTYPE_METHOD(t, "inspect", Inspect);
-    NODE_SET_PROTOTYPE_METHOD(t, "put", Put);
-    NODE_SET_PROTOTYPE_METHOD(t, "size", Size);
-    NODE_SET_PROTOTYPE_METHOD(t, "toString", ToString);
-    NODE_SET_METHOD(t->GetFunction(), "isBuf", IsBuf);
-    exports->Set(NanNew<String>("Buf"), t->GetFunction());
+    // Constructor
+    Local<FunctionTemplate> cls = NanNew<FunctionTemplate>(New);
+    cls->SetClassName(NanNew("Buf"));
+    cls->InstanceTemplate()->SetInternalFieldCount(1);
+    cls->InstanceTemplate()->SetAccessor(NanNew<String>("cap"), GetCap, SetCap);
+    cls->InstanceTemplate()->SetAccessor(NanNew<String>("length"), GetLength);
+    // Prototype
+    NODE_SET_PROTOTYPE_METHOD(cls, "clear", Clear);
+    NODE_SET_PROTOTYPE_METHOD(cls, "inspect", Inspect);
+    NODE_SET_PROTOTYPE_METHOD(cls, "put", Put);
+    NODE_SET_PROTOTYPE_METHOD(cls, "toString", ToString);
+    // Class methods
+    NODE_SET_METHOD(cls->GetFunction(), "isBuf", IsBuf);
+    // exports
+    exports->Set(NanNew<String>("Buf"), cls->GetFunction());
 }
 
 bool Buf::HasInstance(Handle<Value> val) {
@@ -69,31 +74,36 @@ NAN_METHOD(Buf::IsBuf) {
 }
 
 /**
- * Public API: - Buf.prototype.cap
+ * Public API: - buf.cap
  */
-NAN_METHOD(Buf::Cap) {
+NAN_GETTER(Buf::GetCap) {
     NanScope();
-
-    if (args.Length() != 0) {
-        NanThrowError("takes no arguments");
-    } else {
-        Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
-        NanReturnValue(NanNew<Number>(self->buf->cap));
-    }
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    NanReturnValue(NanNew<Number>(self->buf->cap));
 }
 
 /**
- * Public API: - Buf.prototype.size
+ * Public API: - buf.cap
  */
-NAN_METHOD(Buf::Size) {
+NAN_SETTER(Buf::SetCap) {
     NanScope();
+    NanThrowError("cannot set buf.cap");
+}
 
-    if (args.Length() != 0) {
-        NanThrowError("takes no arguments");
-    } else {
-        Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
-        NanReturnValue(NanNew<Number>(self->buf->size));
-    }
+/**
+ * Public API: - buf.length
+ */
+NAN_GETTER(Buf::GetLength) {
+    NanScope();
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    NanReturnValue(NanNew<Number>(self->buf->size));
+}
+
+/**
+ * Public API: - buf.length
+ */
+NAN_SETTER(Buf::SetLength) {
+    NanScope();
 }
 
 /**

@@ -17,12 +17,14 @@ public:
     static bool HasInstance(Handle<Object> obj);
     static NAN_METHOD(IsBuf);
     static NAN_METHOD(New);
-    static NAN_METHOD(Cap);
-    static NAN_METHOD(Size);
     static NAN_METHOD(Put);
     static NAN_METHOD(ToString);
     static NAN_METHOD(Clear);
     static NAN_METHOD(Inspect);
+    static NAN_GETTER(GetCap);
+    static NAN_SETTER(SetCap);
+    static NAN_GETTER(GetLength);
+    static NAN_SETTER(SetLength);
 private:
     buf_t* buf;
 };
