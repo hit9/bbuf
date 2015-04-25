@@ -23,6 +23,7 @@ void Buf::Initialize(Handle<Object> exports) {
     cls->InstanceTemplate()->SetInternalFieldCount(1);
     cls->InstanceTemplate()->SetAccessor(NanNew<String>("cap"), GetCap, SetCap);
     cls->InstanceTemplate()->SetAccessor(NanNew<String>("length"), GetLength, SetLength);
+    cls->InstanceTemplate()->SetIndexedPropertyHandler(GetIndex, SetIndex);
     // Prototype
     NODE_SET_PROTOTYPE_METHOD(cls, "clear", Clear);
     NODE_SET_PROTOTYPE_METHOD(cls, "inspect", Inspect);
@@ -41,6 +42,15 @@ bool Buf::HasInstance(Handle<Value> val) {
 bool Buf::HasInstance(Handle<Object> obj) {
     return obj->InternalFieldCount() == 1 &&
         ObjectWrap::Unwrap<Buf>(obj) != NULL;
+}
+
+bool Buf::IsStringLike(Handle<Value> val) {
+    return Buf::IsStringLike(val.As<Object>());
+}
+
+bool Buf::IsStringLike(Handle<Object> obj) {
+    return obj->IsString() || Buffer::HasInstance(obj) ||
+        Buf::HasInstance(obj);
 }
 
 /**
@@ -89,7 +99,7 @@ NAN_GETTER(Buf::GetCap) {
 }
 
 /**
- * Public API: - buf.cap
+ * Public API: - buf.cap (disabled helper)
  */
 NAN_SETTER(Buf::SetCap) {
     NanScope();
@@ -124,7 +134,7 @@ NAN_SETTER(Buf::SetLength) {
         }
 
         if (len > buf->size) {
-            // put space
+            // append space
             buf_grow(buf, len);
 
             while (buf->size < len)
@@ -136,6 +146,51 @@ NAN_SETTER(Buf::SetLength) {
 }
 
 /**
+ * Public API: - buf[idx]
+ */
+NAN_INDEX_GETTER(Buf::GetIndex) {
+    NanScope();
+
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+
+    if (index >= self->buf->size) {
+        NanReturnUndefined();
+    } else {
+        char s[1] = {0};
+        s[0] = (self->buf->data)[index];
+        NanReturnValue(NanNew<String>(s));
+    }
+}
+
+/**
+ * Public API: - buf[idx] = 'c'
+ */
+NAN_INDEX_SETTER(Buf::SetIndex) {
+    NanScope();
+
+    if (!value->IsString() ) {
+        NanThrowTypeError("requires buf/string/buffer");
+    }
+
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+
+    if (index >= self->buf->size) {
+        NanThrowError("invalid index");
+    }
+
+    Local<String> val = value->ToString();
+
+    if (val->Length() > 1) {
+        NanThrowError("requires a single char");
+    }
+
+    String::Utf8Value tmp(val);
+    char *s = *tmp;
+    (self->buf->data)[index] = s[0];
+    NanReturnValue(NanNew<String>(s));
+}
+
+/**
  * Public API: - Buf.prototype.put
  */
 NAN_METHOD(Buf::Put) {
@@ -143,8 +198,7 @@ NAN_METHOD(Buf::Put) {
 
     if (args.Length() != 1) {
         NanThrowError("takes exactly 1 argument");
-    } else if (!args[0]->IsString() && !Buffer::HasInstance(args[0]) &&
-            !Buf::HasInstance(args[0])) {
+    } else if (!Buf::IsStringLike(args[0])) {
         NanThrowTypeError("requires buf/string/buffer");
     } else {
         Buf *self = ObjectWrap::Unwrap<Buf>(args.This());

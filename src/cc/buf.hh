@@ -17,6 +17,8 @@ public:
     static void Initialize(Handle<Object> exports);
     static bool HasInstance(Handle<Value> val);
     static bool HasInstance(Handle<Object> obj);
+    static bool IsStringLike(Handle<Value> val);
+    static bool IsStringLike(Handle<Object> obj);
     static NAN_METHOD(IsBuf);
     static NAN_METHOD(New);
     static NAN_METHOD(Put);
@@ -27,6 +29,8 @@ public:
     static NAN_SETTER(SetCap);
     static NAN_GETTER(GetLength);
     static NAN_SETTER(SetLength);
+    static NAN_INDEX_GETTER(GetIndex);
+    static NAN_INDEX_SETTER(SetIndex);
 private:
     buf_t* buf;
 };
