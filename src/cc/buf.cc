@@ -4,6 +4,27 @@
 
 using namespace buf;
 
+
+#define ASSERT_STRING_LIKE(val)                                             \
+    if (!Buf::IsStringLike(val)) {                                          \
+        return NanThrowTypeError("requires buf/string/buffer");             \
+    }
+      
+#define ASSERT_ARGS_LEN(len)                                                \
+    if (args.Length() != len) {                                             \
+        buf_t *err = buf_new(16);                                           \
+        buf_sprintf(err, "takes exactly %d args", len);                     \
+        NanThrowError(buf_str(err));                                        \
+        buf_free(err);                                                      \
+        return;                                                             \
+    }                                                                       \
+
+#define ASSERT_UINT32(val)                                                  \
+    if (!val->IsUint32()) {                                                 \
+        return NanThrowTypeError("requires unsigned integer");              \
+    }
+
+
 Buf::Buf(size_t unit) {
     buf = buf_new(unit);
 }
@@ -58,21 +79,19 @@ bool Buf::IsStringLike(Handle<Object> obj) {
  */
 NAN_METHOD(Buf::New) {
     NanScope();
+    ASSERT_ARGS_LEN(1);
+    ASSERT_UINT32(args[0]);
 
-    if (args.Length() != 1) {
-        NanThrowError("takes exactly 1 argument");
-    } else if (!args[0]->IsUint32()){
-        NanThrowTypeError("unsigned integer required");
+    size_t unit = args[0]->Uint32Value();
+
+    if (unit == 0) {
+        NanThrowError("buf unit should not be 0");
+    } else if (unit > BUF_MAX_UNIT) {
+        NanThrowError("buf unit is too large");
     } else {
-        size_t unit = args[0]->Uint32Value();
-
-        if (unit > BUF_MAX_UNIT) {
-            NanThrowError("buf unit is too large");
-        } else {
-            Buf *buf = new Buf(unit);
-            buf->Wrap(args.This());
-            NanReturnValue(args.This());
-        }
+        Buf *buf = new Buf(unit);
+        buf->Wrap(args.This());
+        NanReturnValue(args.This());
     }
 }
 
@@ -81,12 +100,8 @@ NAN_METHOD(Buf::New) {
  */
 NAN_METHOD(Buf::IsBuf) {
     NanScope();
-
-    if (args.Length() != 1) {
-        NanThrowError("takes exactly 1 argument");
-    } else {
-        NanReturnValue(NanNew<Boolean>(Buf::HasInstance(args[0])));
-    }
+    ASSERT_ARGS_LEN(1);
+    NanReturnValue(NanNew<Boolean>(Buf::HasInstance(args[0])));
 }
 
 /**
@@ -120,29 +135,26 @@ NAN_GETTER(Buf::GetLength) {
  */
 NAN_SETTER(Buf::SetLength) {
     NanScope();
+    ASSERT_UINT32(value);
 
-    if (!value->IsUint32()) {
-        NanThrowTypeError("requires unsigned integer");
-    } else {
-        Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
-        buf_t *buf = self->buf;
-        size_t len = value->Uint32Value();
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    buf_t *buf = self->buf;
+    size_t len = value->Uint32Value();
 
-        if (len < buf->size) {
-            // truncate
-            buf_rrm(buf, buf->size - len);
-        }
-
-        if (len > buf->size) {
-            // append space
-            buf_grow(buf, len);
-
-            while (buf->size < len)
-                buf_putc(buf, 0x20);
-        }
-
-        NanReturnValue(NanNew<Number>(buf->size));
+    if (len < buf->size) {
+        // truncate
+        buf_rrm(buf, buf->size - len);
     }
+
+    if (len > buf->size) {
+        // append space
+        buf_grow(buf, len);
+
+        while (buf->size < len)
+            buf_putc(buf, 0x20);
+    }
+
+    NanReturnValue(NanNew<Number>(buf->size));
 }
 
 /**
@@ -167,27 +179,24 @@ NAN_INDEX_GETTER(Buf::GetIndex) {
  */
 NAN_INDEX_SETTER(Buf::SetIndex) {
     NanScope();
-
-    if (!value->IsString() ) {
-        NanThrowTypeError("requires buf/string/buffer");
-    }
+    ASSERT_STRING_LIKE(value);
 
     Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
 
     if (index >= self->buf->size) {
-        NanThrowError("invalid index");
+        NanReturnValue(NanNew<Boolean>(false));
+    } else {
+        Local<String> val = value->ToString();
+
+        if (val->Length() != 1) {
+            NanThrowError("requires a single char");
+        } else {
+            String::Utf8Value tmp(val);
+            char *s = *tmp;
+            (self->buf->data)[index] = s[0];
+            NanReturnValue(NanNew<String>(s));
+        }
     }
-
-    Local<String> val = value->ToString();
-
-    if (val->Length() > 1) {
-        NanThrowError("requires a single char");
-    }
-
-    String::Utf8Value tmp(val);
-    char *s = *tmp;
-    (self->buf->data)[index] = s[0];
-    NanReturnValue(NanNew<String>(s));
 }
 
 /**
@@ -195,25 +204,21 @@ NAN_INDEX_SETTER(Buf::SetIndex) {
  */
 NAN_METHOD(Buf::Put) {
     NanScope();
+    ASSERT_ARGS_LEN(1);
+    ASSERT_STRING_LIKE(args[0]);
 
-    if (args.Length() != 1) {
-        NanThrowError("takes exactly 1 argument");
-    } else if (!Buf::IsStringLike(args[0])) {
-        NanThrowTypeError("requires buf/string/buffer");
-    } else {
-        Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
-        String::Utf8Value tmp(args[0]->ToString());
-        char *s = *tmp;
-        int result = buf_puts(self->buf, s);
-        switch(result) {
-            case BUF_OK:
-                // return new size
-                NanReturnValue(NanNew<Number>(self->buf->size));
-                break;
-            case BUF_ENOMEM:
-                NanThrowError("No memory");
-                break;
-        }
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    String::Utf8Value tmp(args[0]->ToString());
+    char *val = *tmp;
+    int result = buf_puts(self->buf, val);
+
+    switch(result) {
+        case BUF_OK:
+            NanReturnValue(NanNew<Number>(self->buf->size));
+            break;
+        case BUF_ENOMEM:
+            NanThrowError("No memory");
+            break;
     }
 }
 
@@ -222,13 +227,10 @@ NAN_METHOD(Buf::Put) {
  */
 NAN_METHOD(Buf::ToString) {
     NanScope();
+    ASSERT_ARGS_LEN(0);
 
-    if (args.Length() != 0) {
-        NanThrowError("takes no arguments");
-    } else {
-        Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
-        NanReturnValue(NanNew<String>(buf_str(self->buf)));
-    }
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    NanReturnValue(NanNew<String>(buf_str(self->buf)));
 }
 
 /**
@@ -236,14 +238,11 @@ NAN_METHOD(Buf::ToString) {
  */
 NAN_METHOD(Buf::Clear) {
     NanScope();
+    ASSERT_ARGS_LEN(0);
 
-    if (args.Length() != 0) {
-        NanThrowError("takes no arguments");
-    } else {
-        Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
-        buf_clear(self->buf);
-        NanReturnValue(NanNew<Boolean>(true));
-    }
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    buf_clear(self->buf);
+    NanReturnValue(NanNew<Boolean>(true));
 }
 
 /**
