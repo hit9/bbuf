@@ -67,6 +67,8 @@ bool Buf::HasInstance(Handle<Object> obj) {
 }
 
 bool Buf::IsStringLike(Handle<Value> val) {
+    if (val->IsNumber())
+        return false;
     return Buf::IsStringLike(val.As<Object>());
 }
 
