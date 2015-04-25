@@ -22,7 +22,7 @@ void Buf::Initialize(Handle<Object> exports) {
     cls->SetClassName(NanNew("Buf"));
     cls->InstanceTemplate()->SetInternalFieldCount(1);
     cls->InstanceTemplate()->SetAccessor(NanNew<String>("cap"), GetCap, SetCap);
-    cls->InstanceTemplate()->SetAccessor(NanNew<String>("length"), GetLength);
+    cls->InstanceTemplate()->SetAccessor(NanNew<String>("length"), GetLength, SetLength);
     // Prototype
     NODE_SET_PROTOTYPE_METHOD(cls, "clear", Clear);
     NODE_SET_PROTOTYPE_METHOD(cls, "inspect", Inspect);
@@ -54,9 +54,15 @@ NAN_METHOD(Buf::New) {
     } else if (!args[0]->IsUint32()){
         NanThrowTypeError("unsigned integer required");
     } else {
-        Buf *buf = new Buf(args[0]->Uint32Value());
-        buf->Wrap(args.This());
-        NanReturnValue(args.This());
+        size_t unit = args[0]->Uint32Value();
+
+        if (unit > BUF_MAX_UNIT) {
+            NanThrowError("buf unit is too large");
+        } else {
+            Buf *buf = new Buf(unit);
+            buf->Wrap(args.This());
+            NanReturnValue(args.This());
+        }
     }
 }
 
@@ -104,6 +110,29 @@ NAN_GETTER(Buf::GetLength) {
  */
 NAN_SETTER(Buf::SetLength) {
     NanScope();
+
+    if (!value->IsUint32()) {
+        NanThrowTypeError("requires unsigned integer");
+    } else {
+        Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+        buf_t *buf = self->buf;
+        size_t len = value->Uint32Value();
+
+        if (len < buf->size) {
+            // truncate
+            buf_rrm(buf, buf->size - len);
+        }
+
+        if (len > buf->size) {
+            // put space
+            buf_grow(buf, len);
+
+            while (buf->size < len)
+                buf_putc(buf, 0x20);
+        }
+
+        NanReturnValue(NanNew<Number>(buf->size));
+    }
 }
 
 /**

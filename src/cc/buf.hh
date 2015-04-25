@@ -3,6 +3,8 @@
 #include <buf.h>
 #include "nan.h"
 
+#define BUF_MAX_UNIT 1024 * 1024  // 1mb
+
 namespace buf {
 using namespace v8;
 using namespace node;
