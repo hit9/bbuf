@@ -46,9 +46,10 @@ void Buf::Initialize(Handle<Object> exports) {
     cls->InstanceTemplate()->SetAccessor(NanNew<String>("length"), GetLength, SetLength);
     cls->InstanceTemplate()->SetIndexedPropertyHandler(GetIndex, SetIndex);
     // Prototype
+    NODE_SET_PROTOTYPE_METHOD(cls, "put", Put);
+    NODE_SET_PROTOTYPE_METHOD(cls, "pop", Pop);
     NODE_SET_PROTOTYPE_METHOD(cls, "clear", Clear);
     NODE_SET_PROTOTYPE_METHOD(cls, "inspect", Inspect);
-    NODE_SET_PROTOTYPE_METHOD(cls, "put", Put);
     NODE_SET_PROTOTYPE_METHOD(cls, "toString", ToString);
     // Class methods
     NODE_SET_METHOD(cls->GetFunction(), "isBuf", IsBuf);
@@ -223,6 +224,19 @@ NAN_METHOD(Buf::Put) {
 }
 
 /**
+ * Public APi: - Buf.prototype.pop
+ */
+NAN_METHOD(Buf::Pop) {
+    NanScope();
+    ASSERT_ARGS_LEN(1);
+    ASSERT_UINT32(args[0]);
+
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    NanReturnValue(NanNew<Number>(
+                buf_rrm(self->buf, args[0]->Uint32Value())));
+}
+
+/**
  * Public API: - Buf.prototype.toString
  */
 NAN_METHOD(Buf::ToString) {
@@ -251,7 +265,7 @@ NAN_METHOD(Buf::Clear) {
 NAN_METHOD(Buf::Inspect) {
     NanScope();
     Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
-    buf_t *buf = buf_new(self->buf->size);
+    buf_t *buf = buf_new(self->buf->size + 12);  // ensure not 0
     buf_sprintf(buf, "<buf [%d] '%.10s%s'>", self->buf->size,
             buf_str(self->buf), self->buf->size > 10 ? ".." : "");
     Local<Value> val = NanNew<String>(buf_str(buf));

@@ -25,6 +25,7 @@ public:
     static NAN_METHOD(ToString);
     static NAN_METHOD(Clear);
     static NAN_METHOD(Inspect);
+    static NAN_METHOD(Pop);
     static NAN_GETTER(GetCap);
     static NAN_SETTER(SetCap);
     static NAN_GETTER(GetLength);
