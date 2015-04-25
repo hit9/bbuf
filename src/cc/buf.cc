@@ -211,11 +211,12 @@ NAN_METHOD(Buf::Put) {
     Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
     String::Utf8Value tmp(args[0]->ToString());
     char *val = *tmp;
+    size_t size = self->buf->size;
     int result = buf_puts(self->buf, val);
 
     switch(result) {
         case BUF_OK:
-            NanReturnValue(NanNew<Number>(self->buf->size));
+            NanReturnValue(NanNew<Number>(self->buf->size - size));
             break;
         case BUF_ENOMEM:
             NanThrowError("No memory");
@@ -255,8 +256,9 @@ NAN_METHOD(Buf::Clear) {
     ASSERT_ARGS_LEN(0);
 
     Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    size_t size = self->buf->size;
     buf_clear(self->buf);
-    NanReturnValue(NanNew<Boolean>(true));
+    NanReturnValue(NanNew<Number>(size));
 }
 
 /**

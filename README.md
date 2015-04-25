@@ -16,7 +16,7 @@ var Buf = require('iobuf').Buf;
 var buf = new Buf(16);   // created with buf unit
 
 buf.put('abcd');          // => 4.  buf => <buf [4] 'abcd'>
-buf.put('1234567890123')  // => 17. buf => <buf [17] 'abc123456..'>
+buf.put('1234567890123')  // => 13. buf => <buf [17] 'abc123456..'>
 buf.pop(2);               // => 2.  buf => <buf [2] 'ab'>
 buf.length                // => 15.
 buf.cap                   // => 32.
