@@ -3,7 +3,7 @@ IOBuf
 
 ```
 |-------------------------
-| UNIT | UNIT | UNIT | ..       => Buf
+| UNIT | UNIT | UNIT | ..       => Buf (cap, size)
 |-------------------------
 ```
 
@@ -21,6 +21,13 @@ buf.pop(2);               // => 2.  buf => <buf [2] 'ab'>
 buf.length                // => 15.
 buf.cap                   // => 32.
 buf.toString()            // => 'abcd12345678901'
+buf.clear()               // => 15.
+buf.cap                   // => 0
+
+var bufa = new Buf(4), bufb = new Buf(4);
+bufa.put('abc');
+bufb.put('efg');
+bufa.put(bufb);  // bufa => <buf [6] 'abcefg'> (with cap = 8) 
 ```
 
 License
