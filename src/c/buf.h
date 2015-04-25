@@ -55,8 +55,8 @@ void buf_println(buf_t *);
 int buf_put(buf_t *, uint8_t *, size_t);
 int buf_putc(buf_t *, char);
 int buf_puts(buf_t *, char *);
-void buf_lrm(buf_t *, size_t);
-void buf_rrm(buf_t *, size_t);
+size_t buf_lrm(buf_t *, size_t);
+size_t buf_rrm(buf_t *, size_t);
 int buf_sprintf(buf_t *, const char *, ...);
 
 #ifdef __cplusplus
