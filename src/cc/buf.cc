@@ -76,7 +76,7 @@ bool Buf::IsStringLike(Handle<Object> obj) {
 }
 
 /**
- * Public API: - new Buf
+ * Public API: - new Buf  O(1)
  */
 NAN_METHOD(Buf::New) {
     NanScope();
@@ -97,7 +97,7 @@ NAN_METHOD(Buf::New) {
 }
 
 /**
- * Public API: - Buf.isBuf
+ * Public API: - Buf.isBuf O(1)
  */
 NAN_METHOD(Buf::IsBuf) {
     NanScope();
@@ -106,7 +106,7 @@ NAN_METHOD(Buf::IsBuf) {
 }
 
 /**
- * Public API: - buf.cap
+ * Public API: - buf.cap O(1)
  */
 NAN_GETTER(Buf::GetCap) {
     NanScope();
@@ -115,7 +115,7 @@ NAN_GETTER(Buf::GetCap) {
 }
 
 /**
- * Public API: - buf.cap (disabled helper)
+ * Public API: - buf.cap (disabled helper) O(1)
  */
 NAN_SETTER(Buf::SetCap) {
     NanScope();
@@ -123,7 +123,7 @@ NAN_SETTER(Buf::SetCap) {
 }
 
 /**
- * Public API: - buf.length
+ * Public API: - buf.length O(1)
  */
 NAN_GETTER(Buf::GetLength) {
     NanScope();
@@ -132,7 +132,7 @@ NAN_GETTER(Buf::GetLength) {
 }
 
 /**
- * Public API: - buf.length
+ * Public API: - buf.length O(1)/O(k)
  */
 NAN_SETTER(Buf::SetLength) {
     NanScope();
@@ -159,7 +159,7 @@ NAN_SETTER(Buf::SetLength) {
 }
 
 /**
- * Public API: - buf[idx]
+ * Public API: - buf[idx] O(1)
  */
 NAN_INDEX_GETTER(Buf::GetIndex) {
     NanScope();
@@ -176,7 +176,7 @@ NAN_INDEX_GETTER(Buf::GetIndex) {
 }
 
 /**
- * Public API: - buf[idx] = 'c'
+ * Public API: - buf[idx] = 'c' O(1)
  */
 NAN_INDEX_SETTER(Buf::SetIndex) {
     NanScope();
@@ -201,7 +201,7 @@ NAN_INDEX_SETTER(Buf::SetIndex) {
 }
 
 /**
- * Public API: - Buf.prototype.put
+ * Public API: - Buf.prototype.put O(k)
  */
 NAN_METHOD(Buf::Put) {
     NanScope();
@@ -225,7 +225,7 @@ NAN_METHOD(Buf::Put) {
 }
 
 /**
- * Public APi: - Buf.prototype.pop
+ * Public APi: - Buf.prototype.pop O(1)
  */
 NAN_METHOD(Buf::Pop) {
     NanScope();
@@ -238,7 +238,7 @@ NAN_METHOD(Buf::Pop) {
 }
 
 /**
- * Public API: - Buf.prototype.toString
+ * Public API: - Buf.prototype.toString  O(1)
  */
 NAN_METHOD(Buf::ToString) {
     NanScope();
@@ -249,7 +249,7 @@ NAN_METHOD(Buf::ToString) {
 }
 
 /**
- * Public API: - Buf.prototype.clear
+ * Public API: - Buf.prototype.clear O(1)
  */
 NAN_METHOD(Buf::Clear) {
     NanScope();
