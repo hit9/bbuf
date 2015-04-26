@@ -28,6 +28,7 @@ public:
     static NAN_METHOD(Inspect);
     static NAN_METHOD(Pop);
     static NAN_METHOD(Copy);
+    static NAN_METHOD(Slice);
     static NAN_GETTER(GetCap);
     static NAN_SETTER(SetCap);
     static NAN_GETTER(GetLength);

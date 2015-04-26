@@ -9,11 +9,29 @@ using namespace buf;
     if (!Buf::IsStringLike(val)) {                                          \
         return NanThrowTypeError("requires buf/string/buffer");             \
     }
-      
+
 #define ASSERT_ARGS_LEN(len)                                                \
     if (args.Length() != len) {                                             \
-        buf_t *err = buf_new(16);                                           \
+        buf_t *err = buf_new(21);                                           \
         buf_sprintf(err, "takes exactly %d args", len);                     \
+        NanThrowError(buf_str(err));                                        \
+        buf_free(err);                                                      \
+        return;                                                             \
+    }                                                                       \
+
+#define ASSERT_ARGS_LEN_GT(len)                                             \
+    if (!(args.Length() > len)) {                                           \
+        buf_t *err = buf_new(22);                                           \
+        buf_sprintf(err, "takes at least %d args", len + 1);                \
+        NanThrowError(buf_str(err));                                        \
+        buf_free(err);                                                      \
+        return;                                                             \
+    }                                                                       \
+
+#define ASSERT_ARGS_LEN_LT(len)                                             \
+    if (!(args.Length() < len)) {                                           \
+        buf_t *err = buf_new(21);                                           \
+        buf_sprintf(err, "takes at most %d args", len - 1);                 \
         NanThrowError(buf_str(err));                                        \
         buf_free(err);                                                      \
         return;                                                             \
@@ -22,6 +40,11 @@ using namespace buf;
 #define ASSERT_UINT32(val)                                                  \
     if (!val->IsUint32()) {                                                 \
         return NanThrowTypeError("requires unsigned integer");              \
+    }
+
+#define ASSERT_INT32(val)                                                  \
+    if (!val->IsInt32()) {                                                 \
+        return NanThrowTypeError("requires integer");                      \
     }
 
 Persistent<FunctionTemplate> Buf::constructor;
@@ -54,6 +77,7 @@ void Buf::Initialize(Handle<Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(ctor, "pop", Pop);
     NODE_SET_PROTOTYPE_METHOD(ctor, "clear", Clear);
     NODE_SET_PROTOTYPE_METHOD(ctor, "copy", Copy);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "slice", Slice);
     NODE_SET_PROTOTYPE_METHOD(ctor, "inspect", Inspect);
     NODE_SET_PROTOTYPE_METHOD(ctor, "toString", ToString);
     // Class methods
@@ -290,7 +314,7 @@ NAN_METHOD(Buf::Inspect) {
 }
 
 /**
- * Public API: - Buf.prototype.copy
+ * Public API: - Buf.prototype.copy O(n)
  */
 NAN_METHOD(Buf::Copy) {
     NanScope();
@@ -300,5 +324,57 @@ NAN_METHOD(Buf::Copy) {
     Local<Object> inst = ctor->GetFunction()->NewInstance(1, argv);
     Buf *copy = ObjectWrap::Unwrap<Buf>(inst);
     buf_put(copy->buf, self->buf->data, self->buf->size);
+    NanReturnValue(inst);
+}
+
+/**
+ * Public API: - Buf.prototype.slice O(k)
+ */
+NAN_METHOD(Buf::Slice) {
+    NanScope();
+    ASSERT_ARGS_LEN_GT(0);
+    ASSERT_ARGS_LEN_LT(3);
+    ASSERT_INT32(args[0]);
+
+    if (args.Length() > 1)
+        ASSERT_INT32(args[1]);
+
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+
+    // make a copy
+    Local<Value> argv[1] = { NanNew<Number>(self->buf->unit) };
+    Local<FunctionTemplate> ctor = NanNew<FunctionTemplate>(constructor);
+    Local<Object> inst = ctor->GetFunction()->NewInstance(1, argv);
+    Buf *copy = ObjectWrap::Unwrap<Buf>(inst);
+
+    // slice data
+
+    int begin = args[0]->Int32Value();
+    int end;
+
+    size_t len;
+    size_t size = self->buf->size;
+
+    if (args.Length() == 1)
+        end = size;
+    else
+        end = args[1]->Int32Value();
+
+    if (begin < 0) begin += size;
+    if (begin < 0) begin = 0;
+
+    if (end < 0) end += size;
+    if (end > int(size)) end = size;
+
+    if (begin < end) len = end - begin;
+    if (begin >= end) len = 0;
+
+    if (len > 0)
+        buf_grow(copy->buf, len);
+
+    size_t idx = 0;
+
+    while (idx < len)
+        buf_putc(copy->buf, (self->buf->data)[begin + idx++]);
     NanReturnValue(inst);
 }
