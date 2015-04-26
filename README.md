@@ -4,9 +4,9 @@ IOBuf
 Utf8 buffer with dynamic size for nodejs/iojs.
 
 ```
-|-------------------------
-| UNIT | UNIT | UNIT | ..       => Buf (cap, size)
-|-------------------------
++------- -cap ------+
++------- size --+   | => buf
+|UNIT|UNIT|UNIT|UNIT|
 ```
 
 Example
