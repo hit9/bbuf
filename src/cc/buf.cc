@@ -87,6 +87,7 @@ void Buf::Initialize(Handle<Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(ctor, "clear", Clear);
     NODE_SET_PROTOTYPE_METHOD(ctor, "copy", Copy);
     NODE_SET_PROTOTYPE_METHOD(ctor, "slice", Slice);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "grow", Grow);
     NODE_SET_PROTOTYPE_METHOD(ctor, "inspect", Inspect);
     NODE_SET_PROTOTYPE_METHOD(ctor, "toString", ToString);
     // Class methods
@@ -245,6 +246,19 @@ NAN_INDEX_SETTER(Buf::SetIndex) {
             NanReturnValue(NanNew<String>(s));
         }
     }
+}
+
+/**
+ * Public API: - Buf.prototype.grow O(1)
+ */
+NAN_METHOD(Buf::Grow) {
+    NanScope();
+    ASSERT_ARGS_LEN(1);
+    ASSERT_UINT32(args[0]);
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    int retv = buf_grow(self->buf, args[0]->Uint32Value());
+    ASSERT_BUF_OK(retv);
+    NanReturnValue(NanNew<Number>(self->buf->cap));
 }
 
 /**
