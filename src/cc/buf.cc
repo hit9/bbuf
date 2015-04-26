@@ -24,6 +24,7 @@ using namespace buf;
         return NanThrowTypeError("requires unsigned integer");              \
     }
 
+Persistent<Function> Buf::constructor;
 
 Buf::Buf(size_t unit) {
     buf = buf_new(unit);
@@ -39,22 +40,25 @@ Buf::~Buf() {
 void Buf::Initialize(Handle<Object> exports) {
     NanScope();
     // Constructor
-    Local<FunctionTemplate> cls = NanNew<FunctionTemplate>(New);
-    cls->SetClassName(NanNew("Buf"));
-    cls->InstanceTemplate()->SetInternalFieldCount(1);
-    cls->InstanceTemplate()->SetAccessor(NanNew<String>("cap"), GetCap, SetCap);
-    cls->InstanceTemplate()->SetAccessor(NanNew<String>("length"), GetLength, SetLength);
-    cls->InstanceTemplate()->SetIndexedPropertyHandler(GetIndex, SetIndex);
+    Local<FunctionTemplate> ctor = NanNew<FunctionTemplate>(New);
+    ctor->SetClassName(NanNew("Buf"));
+    ctor->InstanceTemplate()->SetInternalFieldCount(1);
+    ctor->InstanceTemplate()->SetAccessor(NanNew<String>("cap"), GetCap, SetCap);
+    ctor->InstanceTemplate()->SetAccessor(NanNew<String>("length"), GetLength, SetLength);
+    ctor->InstanceTemplate()->SetIndexedPropertyHandler(GetIndex, SetIndex);
     // Prototype
-    NODE_SET_PROTOTYPE_METHOD(cls, "put", Put);
-    NODE_SET_PROTOTYPE_METHOD(cls, "pop", Pop);
-    NODE_SET_PROTOTYPE_METHOD(cls, "clear", Clear);
-    NODE_SET_PROTOTYPE_METHOD(cls, "inspect", Inspect);
-    NODE_SET_PROTOTYPE_METHOD(cls, "toString", ToString);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "put", Put);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "pop", Pop);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "clear", Clear);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "copy", Copy);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "inspect", Inspect);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "toString", ToString);
     // Class methods
-    NODE_SET_METHOD(cls->GetFunction(), "isBuf", IsBuf);
-    // exports
-    exports->Set(NanNew<String>("Buf"), cls->GetFunction());
+    NODE_SET_METHOD(ctor->GetFunction(), "isBuf", IsBuf);
+    // Exports
+    exports->Set(NanNew<String>("Buf"), ctor->GetFunction());
+    // Persistents
+    NanAssignPersistent(constructor, ctor->GetFunction());
 }
 
 bool Buf::HasInstance(Handle<Value> val) {
@@ -85,16 +89,23 @@ NAN_METHOD(Buf::New) {
     ASSERT_ARGS_LEN(1);
     ASSERT_UINT32(args[0]);
 
-    size_t unit = args[0]->Uint32Value();
+    if (args.IsConstructCall()) {
+        size_t unit = args[0]->Uint32Value();
 
-    if (unit == 0) {
-        NanThrowError("buf unit should not be 0");
-    } else if (unit > BUF_MAX_UNIT) {
-        NanThrowError("buf unit is too large");
+        if (unit == 0) {
+            NanThrowError("buf unit should not be 0");
+        } else if (unit > BUF_MAX_UNIT) {
+            NanThrowError("buf unit is too large");
+        } else {
+            Buf *buf = new Buf(unit);
+            buf->Wrap(args.This());
+            NanReturnValue(args.This());
+        }
     } else {
-        Buf *buf = new Buf(unit);
-        buf->Wrap(args.This());
-        NanReturnValue(args.This());
+        // turn to construct call
+        Local<Value> argv[1] = { args[0] };
+        Local<Function> ctor = NanNew<Function>(constructor);
+        NanReturnValue(ctor->NewInstance(1, argv));
     }
 }
 
@@ -112,7 +123,7 @@ NAN_METHOD(Buf::IsBuf) {
  */
 NAN_GETTER(Buf::GetCap) {
     NanScope();
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     NanReturnValue(NanNew<Number>(self->buf->cap));
 }
 
@@ -129,7 +140,7 @@ NAN_SETTER(Buf::SetCap) {
  */
 NAN_GETTER(Buf::GetLength) {
     NanScope();
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     NanReturnValue(NanNew<Number>(self->buf->size));
 }
 
@@ -140,7 +151,7 @@ NAN_SETTER(Buf::SetLength) {
     NanScope();
     ASSERT_UINT32(value);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     buf_t *buf = self->buf;
     size_t len = value->Uint32Value();
 
@@ -166,7 +177,7 @@ NAN_SETTER(Buf::SetLength) {
 NAN_INDEX_GETTER(Buf::GetIndex) {
     NanScope();
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
 
     if (index >= self->buf->size) {
         NanReturnUndefined();
@@ -184,7 +195,7 @@ NAN_INDEX_SETTER(Buf::SetIndex) {
     NanScope();
     ASSERT_STRING_LIKE(value);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
 
     if (index >= self->buf->size) {
         NanReturnValue(NanNew<Boolean>(false));
@@ -210,7 +221,7 @@ NAN_METHOD(Buf::Put) {
     ASSERT_ARGS_LEN(1);
     ASSERT_STRING_LIKE(args[0]);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     String::Utf8Value tmp(args[0]->ToString());
     char *val = *tmp;
     size_t size = self->buf->size;
@@ -234,7 +245,7 @@ NAN_METHOD(Buf::Pop) {
     ASSERT_ARGS_LEN(1);
     ASSERT_UINT32(args[0]);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     NanReturnValue(NanNew<Number>(
                 buf_rrm(self->buf, args[0]->Uint32Value())));
 }
@@ -246,7 +257,7 @@ NAN_METHOD(Buf::ToString) {
     NanScope();
     ASSERT_ARGS_LEN(0);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     NanReturnValue(NanNew<String>(buf_str(self->buf)));
 }
 
@@ -257,7 +268,7 @@ NAN_METHOD(Buf::Clear) {
     NanScope();
     ASSERT_ARGS_LEN(0);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     size_t size = self->buf->size;
     buf_clear(self->buf);
     NanReturnValue(NanNew<Number>(size));
@@ -268,11 +279,25 @@ NAN_METHOD(Buf::Clear) {
  */
 NAN_METHOD(Buf::Inspect) {
     NanScope();
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     buf_t *buf = buf_new(self->buf->size + 12);  // ensure not 0
     buf_sprintf(buf, "<buf [%d] '%.10s%s'>", self->buf->size,
             buf_str(self->buf), self->buf->size > 10 ? ".." : "");
     Local<Value> val = NanNew<String>(buf_str(buf));
     buf_free(buf);
     NanReturnValue(val);
+}
+
+/**
+ * Public API: - Buf.prototype.copy
+ */
+NAN_METHOD(Buf::Copy) {
+    NanScope();
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Local<Value> argv[1] = { NanNew<Number>(self->buf->unit) };
+    Local<Function> ctor = NanNew<Function>(constructor);
+    Local<Object> inst = ctor->NewInstance(1, argv);
+    Buf *copy = ObjectWrap::Unwrap<Buf>(inst);
+    buf_put(copy->buf, self->buf->data, self->buf->size);
+    NanReturnValue(inst);
 }

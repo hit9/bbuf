@@ -14,6 +14,7 @@ public:
     Buf(size_t unit);
     ~Buf();
 
+    static Persistent<Function> constructor;
     static void Initialize(Handle<Object> exports);
     static bool HasInstance(Handle<Value> val);
     static bool HasInstance(Handle<Object> obj);
@@ -26,6 +27,7 @@ public:
     static NAN_METHOD(Clear);
     static NAN_METHOD(Inspect);
     static NAN_METHOD(Pop);
+    static NAN_METHOD(Copy);
     static NAN_GETTER(GetCap);
     static NAN_SETTER(SetCap);
     static NAN_GETTER(GetLength);
