@@ -42,6 +42,13 @@ Test if an object is a Buf instance.
 
 Put string/buffer/buf object to buf, return bytes put. O(k)
 
+```js
+buf.put('abcd');
+buf.put(buf);
+buf.put(new Buffer('abcd'));
+// buf => <buf [12] 'abcdabcdab..'>
+```
+
 ### buf.pop(size)
 
 Pop buf on the right end, return bytes poped. O(1)
