@@ -82,4 +82,23 @@ describe('iobuf', function() {
     assert(buf.slice(1, 1).toString() === '');
     assert(buf.slice(1, 0).toString() === '');
   });
+
+  it('get buf[idx]', function() {
+    var buf = new Buf(4);
+    assert(buf.put('abcdef') === 6);
+    assert(buf[0] === 'a');
+    assert(buf[1] === 'b');
+    assert(buf[3] === 'd');
+    assert(buf[100] === undefined);
+    assert(buf[-1] === undefined);
+    assert(buf['abc'] === undefined);
+  });
+
+  it('set buf[idx]', function() {
+    var buf = new Buf(4);
+    assert(buf.put('abcdef') === 6);
+    assert((buf[3] = 'g') === 'g');
+    assert(buf[3] === 'g');
+    assert.throws(function() {buf[10] = 'm'}, Error);
+  });
 });
