@@ -5,47 +5,56 @@
 using namespace buf;
 
 
-#define ASSERT_STRING_LIKE(val)                                             \
-    if (!Buf::IsStringLike(val)) {                                          \
-        return NanThrowTypeError("requires buf/string/buffer");             \
-    }
-
-#define ASSERT_ARGS_LEN(len)                                                \
-    if (args.Length() != len) {                                             \
-        buf_t *err = buf_new(21);                                           \
-        buf_sprintf(err, "takes exactly %d args", len);                     \
-        NanThrowError(buf_str(err));                                        \
-        buf_free(err);                                                      \
-        return;                                                             \
-    }                                                                       \
-
-#define ASSERT_ARGS_LEN_GT(len)                                             \
-    if (!(args.Length() > len)) {                                           \
-        buf_t *err = buf_new(22);                                           \
-        buf_sprintf(err, "takes at least %d args", len + 1);                \
-        NanThrowError(buf_str(err));                                        \
-        buf_free(err);                                                      \
-        return;                                                             \
-    }                                                                       \
-
-#define ASSERT_ARGS_LEN_LT(len)                                             \
-    if (!(args.Length() < len)) {                                           \
-        buf_t *err = buf_new(21);                                           \
-        buf_sprintf(err, "takes at most %d args", len - 1);                 \
-        NanThrowError(buf_str(err));                                        \
-        buf_free(err);                                                      \
-        return;                                                             \
-    }                                                                       \
-
-#define ASSERT_UINT32(val)                                                  \
-    if (!val->IsUint32()) {                                                 \
-        return NanThrowTypeError("requires unsigned integer");              \
-    }
-
-#define ASSERT_INT32(val)                                                  \
-    if (!val->IsInt32()) {                                                 \
-        return NanThrowTypeError("requires integer");                      \
-    }
+#define ASSERT_STRING_LIKE(val)                                              \
+    if (!Buf::IsStringLike(val)) {                                           \
+        return NanThrowTypeError("requires buf/string/buffer");              \
+     }
+ 
+#define ASSERT_ARGS_LEN(len)                                                 \
+    if (args.Length() != len) {                                              \
+        buf_t *err = buf_new(21);                                            \
+        buf_sprintf(err, "takes exactly %d args", len);                      \
+        NanThrowError(buf_str(err));                                         \
+        buf_free(err);                                                       \
+        return;                                                              \
+    }                                                                        \
+ 
+#define ASSERT_ARGS_LEN_GT(len)                                              \
+    if (!(args.Length() > len)) {                                            \
+        buf_t *err = buf_new(22);                                            \
+        buf_sprintf(err, "takes at least %d args", len + 1);                 \
+        NanThrowError(buf_str(err));                                         \
+        buf_free(err);                                                       \
+        return;                                                              \
+    }                                                                        \
+ 
+#define ASSERT_ARGS_LEN_LT(len)                                              \
+    if (!(args.Length() < len)) {                                            \
+        buf_t *err = buf_new(21);                                            \
+        buf_sprintf(err, "takes at most %d args", len - 1);                  \
+        NanThrowError(buf_str(err));                                         \
+        buf_free(err);                                                       \
+        return;                                                              \
+    }                                                                        \
+ 
+#define ASSERT_UINT32(val)                                                   \
+    if (!val->IsUint32()) {                                                  \
+        return NanThrowTypeError("requires unsigned integer");               \
+     }
+ 
+#define ASSERT_INT32(val)                                                    \
+    if (!val->IsInt32()) {                                                   \
+        return NanThrowTypeError("requires integer");                        \
+     }
+ 
+#define ASSERT_BUF_OK(retv) {                                                \
+    if (retv == BUF_ENOMEM) {                                                \
+        return NanThrowError("No memory");                                   \
+    }                                                                        \
+    if (retv != BUF_OK) {                                                    \
+        return NanThrowError("Buf operation failed") ;                       \
+    }                                                                        \
+ }
 
 Persistent<FunctionTemplate> Buf::constructor;
 
@@ -187,8 +196,8 @@ NAN_SETTER(Buf::SetLength) {
 
     if (len > buf->size) {
         // append space
-        buf_grow(buf, len);
-
+        int retv = buf_grow(buf, len);
+        ASSERT_BUF_OK(retv);
         while (buf->size < len)
             buf_putc(buf, 0x20);
     }
@@ -250,16 +259,9 @@ NAN_METHOD(Buf::Put) {
     String::Utf8Value tmp(args[0]->ToString());
     char *val = *tmp;
     size_t size = self->buf->size;
-    int result = buf_puts(self->buf, val);
-
-    switch(result) {
-        case BUF_OK:
-            NanReturnValue(NanNew<Number>(self->buf->size - size));
-            break;
-        case BUF_ENOMEM:
-            NanThrowError("No memory");
-            break;
-    }
+    int retv = buf_puts(self->buf, val);
+    ASSERT_BUF_OK(retv);
+    NanReturnValue(NanNew<Number>(self->buf->size - size));
 }
 
 /**
@@ -323,7 +325,8 @@ NAN_METHOD(Buf::Copy) {
     Local<FunctionTemplate> ctor = NanNew<FunctionTemplate>(constructor);
     Local<Object> inst = ctor->GetFunction()->NewInstance(1, argv);
     Buf *copy = ObjectWrap::Unwrap<Buf>(inst);
-    buf_put(copy->buf, self->buf->data, self->buf->size);
+    int retv = buf_put(copy->buf, self->buf->data, self->buf->size);
+    ASSERT_BUF_OK(retv);
     NanReturnValue(inst);
 }
 
@@ -369,8 +372,10 @@ NAN_METHOD(Buf::Slice) {
     if (begin < end) len = end - begin;
     if (begin >= end) len = 0;
 
-    if (len > 0)
-        buf_grow(copy->buf, len);
+    if (len > 0) {
+        int retv = buf_grow(copy->buf, len);
+        ASSERT_BUF_OK(retv);
+    }
 
     size_t idx = 0;
 
