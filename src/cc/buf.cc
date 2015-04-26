@@ -217,7 +217,7 @@ NAN_INDEX_GETTER(Buf::GetIndex) {
     if (index >= self->buf->size) {
         NanReturnUndefined();
     } else {
-        char s[1] = {0};
+        char s[] = {0, 0};
         s[0] = (self->buf->data)[index];
         NanReturnValue(NanNew<String>(s));
     }
