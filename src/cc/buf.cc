@@ -232,7 +232,7 @@ NAN_INDEX_SETTER(Buf::SetIndex) {
     Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
 
     if (index >= self->buf->size) {
-        NanReturnValue(NanNew<Boolean>(false));
+        NanThrowError("index cannot larger than size");
     } else {
         Local<String> val = value->ToString();
 
