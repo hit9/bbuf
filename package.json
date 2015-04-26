@@ -10,6 +10,9 @@
       "bindings": "*",
       "nan": "1.8.2"
   },
+  "devDependencies": {
+      "mocha": "*"
+  },
   "repository": {
       "type": "git",
       "url": "https://github.com/hit9/iobuf.git"
