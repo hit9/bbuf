@@ -112,6 +112,27 @@ buf.slice(-1)  // <buf [1] 'd'>
 buf.slice(1, 3)  // <buf [2] 'bc'>
 ```
 
+Benchmark
+---------
+
+Simple [benchmark](bench.js) between `v8 string + operator`, `node buffer.write` and `iobuf.put`:
+
+Linux Node v0.11.13:
+
+```
+v8 string + operator:    1000000 op in 244 ms   => 4098360.7ops
+node buffer.write:       1000000 op in 407 ms   => 2457002.5ops
+node addon iobuf.put:    1000000 op in 416 ms   => 2403846.2ops
+```
+
+OSX Node v0.11.13:
+
+```
+v8 string + operator:    1000000 op in 270 ms   => 3703703.7ops
+node buffer.write:       1000000 op in 408 ms   => 2450980.4ops
+node addon iobuf.put:    1000000 op in 468 ms   => 2136752.1ops
+```
+
 License
 --------
 
