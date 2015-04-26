@@ -14,7 +14,7 @@ public:
     Buf(size_t unit);
     ~Buf();
 
-    static Persistent<Function> constructor;
+    static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> exports);
     static bool HasInstance(Handle<Value> val);
     static bool HasInstance(Handle<Object> obj);

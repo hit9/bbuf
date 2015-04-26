@@ -24,7 +24,7 @@ using namespace buf;
         return NanThrowTypeError("requires unsigned integer");              \
     }
 
-Persistent<Function> Buf::constructor;
+Persistent<FunctionTemplate> Buf::constructor;
 
 Buf::Buf(size_t unit) {
     buf = buf_new(unit);
@@ -41,8 +41,11 @@ void Buf::Initialize(Handle<Object> exports) {
     NanScope();
     // Constructor
     Local<FunctionTemplate> ctor = NanNew<FunctionTemplate>(New);
-    ctor->SetClassName(NanNew("Buf"));
     ctor->InstanceTemplate()->SetInternalFieldCount(1);
+    ctor->SetClassName(NanNew("Buf"));
+    // Persistents
+    NanAssignPersistent(constructor, ctor);
+    // Accessors
     ctor->InstanceTemplate()->SetAccessor(NanNew<String>("cap"), GetCap, SetCap);
     ctor->InstanceTemplate()->SetAccessor(NanNew<String>("length"), GetLength, SetLength);
     ctor->InstanceTemplate()->SetIndexedPropertyHandler(GetIndex, SetIndex);
@@ -57,8 +60,6 @@ void Buf::Initialize(Handle<Object> exports) {
     NODE_SET_METHOD(ctor->GetFunction(), "isBuf", IsBuf);
     // Exports
     exports->Set(NanNew<String>("Buf"), ctor->GetFunction());
-    // Persistents
-    NanAssignPersistent(constructor, ctor->GetFunction());
 }
 
 bool Buf::HasInstance(Handle<Value> val) {
@@ -67,7 +68,7 @@ bool Buf::HasInstance(Handle<Value> val) {
 
 bool Buf::HasInstance(Handle<Object> obj) {
     return obj->InternalFieldCount() == 1 &&
-        ObjectWrap::Unwrap<Buf>(obj) != NULL;
+        NanHasInstance(constructor, obj);
 }
 
 bool Buf::IsStringLike(Handle<Value> val) {
@@ -104,8 +105,8 @@ NAN_METHOD(Buf::New) {
     } else {
         // turn to construct call
         Local<Value> argv[1] = { args[0] };
-        Local<Function> ctor = NanNew<Function>(constructor);
-        NanReturnValue(ctor->NewInstance(1, argv));
+        Local<FunctionTemplate> ctor = NanNew<FunctionTemplate>(constructor);
+        NanReturnValue(ctor->GetFunction()->NewInstance(1, argv));
     }
 }
 
@@ -295,8 +296,8 @@ NAN_METHOD(Buf::Copy) {
     NanScope();
     Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
     Local<Value> argv[1] = { NanNew<Number>(self->buf->unit) };
-    Local<Function> ctor = NanNew<Function>(constructor);
-    Local<Object> inst = ctor->NewInstance(1, argv);
+    Local<FunctionTemplate> ctor = NanNew<FunctionTemplate>(constructor);
+    Local<Object> inst = ctor->GetFunction()->NewInstance(1, argv);
     Buf *copy = ObjectWrap::Unwrap<Buf>(inst);
     buf_put(copy->buf, self->buf->data, self->buf->size);
     NanReturnValue(inst);
