@@ -29,7 +29,7 @@
 extern "C" {
 #endif
 
-#define BUF_MAX_SIZE 16 * 1024 * 1024  //16mb
+#define BUF_MAX_SIZE 1024 * 1024 * 1024  // 1gb
 
 typedef enum {
     BUF_OK = 0,
