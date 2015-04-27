@@ -4,8 +4,13 @@ build: ./src/cc/*.cc ./src/c/*.c ./src/cc/*.hh ./src/c/*.h
 test: build
 	mocha test.js
 
-bench: build
-	node bench.js
+bench:
+	@node bench/bench-v8-string.js
+	@node bench/bench-v8-array-join.js
+	@node bench/bench-node-buffer.js
+	@node bench/bench-iobuf.js
 
 clean:
 	rm -rf build
+
+.PHONY: bench
