@@ -10,10 +10,21 @@ var str = '';
 
 var startAt = new Date();
 for (var i = 0; i < n; i++)
-  str += i.toString().slice(-1);
+  str += i.toString().slice(-i);
 
 var endAt = new Date();
 console.log(util.format('v8 string + operator:\t %d op in %s ms\t=> %dops',
+                       n, endAt - startAt,
+                       (1000 * n / (endAt - startAt)).toFixed(1)));
+
+// v8 array join
+var arr = [];
+var startAt = new Date();
+for (var i = 0; i < n; i++)
+  arr[i] = i.toString().slice(-i);
+var str = arr.join('');
+var endAt = new Date();
+console.log(util.format('v8 array join:\t\t %d op in %s ms\t=> %dops',
                        n, endAt - startAt,
                        (1000 * n / (endAt - startAt)).toFixed(1)));
 
@@ -22,7 +33,7 @@ console.log(util.format('v8 string + operator:\t %d op in %s ms\t=> %dops',
 var buffer = new Buffer(str.length);
 var startAt = new Date();
 for (var i = 0; i < n; i++) {
-  buffer.write(i.toString());
+  buffer.write(i.toString().slice(-i));
 }
 var endAt = new Date();
 console.log(util.format('node buffer.write:\t %d op in %s ms\t=> %dops',
@@ -31,11 +42,10 @@ console.log(util.format('node buffer.write:\t %d op in %s ms\t=> %dops',
 
 
 // iobuf
-var buf = new Buf(1);
-
+var buf = new Buf(1024);
 var startAt = new Date();
 for (var i = 0; i < n; i++)
-  buf.put(i.toString().slice(-1));
+  buf.put(i.toString().slice(-i));
 var endAt = new Date();
 console.log(util.format('node addon iobuf.put:\t %d op in %s ms\t=> %dops',
                        n, endAt - startAt,
