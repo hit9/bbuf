@@ -125,7 +125,7 @@ node buf fixed size:     1000000 op in 355 ms   => 2816901.4ops heapUsed: 146698
 iobuf dynamic size:      1000000 op in 371 ms   => 2695417.8ops heapUsed: 36397128
 ```
 
-If you want dynamic size and less memory uesage but not so slow buffer type, use IOBuf.
+If you want buffer with dynamic size, less memory usage and not so slow, use IOBuf.
 
 License
 --------
