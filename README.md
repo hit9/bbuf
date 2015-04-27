@@ -115,25 +115,17 @@ buf.slice(1, 3)  // <buf [2] 'bc'>
 Benchmark
 ---------
 
-Simple [benchmark](bench.js) between `v8 string + operator`, `node buffer.write` and `iobuf.put`:
-
-Linux(1G 1CPU) Nodev0.11.13.
-
-```
-v8 string + operator:    1000000 op in 244 ms   => 4098360.7ops
-node buffer.write:       1000000 op in 407 ms   => 2457002.5ops
-node addon iobuf.put:    1000000 op in 416 ms   => 2403846.2ops
-```
-
-OSX Nodev0.11.13:
+Simple [benchmark](bench.js) between `v8 string + operator`, `v8 array join`,
+`node buffer.write` and `iobuf.put`:
 
 ```
-v8 string + operator:    1000000 op in 270 ms   => 3703703.7ops
-node buffer.write:       1000000 op in 408 ms   => 2450980.4ops
-node addon iobuf.put:    1000000 op in 468 ms   => 2136752.1ops
+v8 string + operator:    1000000 op in 202 ms   => 4950495ops heapUsed: 76034848
+v8 array join:           1000000 op in 379 ms   => 2638522.4ops heapUsed: 71710880
+node buf fixed size:     1000000 op in 355 ms   => 2816901.4ops heapUsed: 14669800
+iobuf dynamic size:      1000000 op in 371 ms   => 2695417.8ops heapUsed: 36397128
 ```
 
-Linux Node
+If you want dynamic size and less memory uesage but not so slow buffer type, use IOBuf.
 
 License
 --------
