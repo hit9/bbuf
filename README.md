@@ -3,6 +3,9 @@ IOBuf
 
 Utf8 buffer with dynamic size for nodejs/iojs.
 
+If you have want a dynamic buffer but dont want to hold multiple copies in memory
+, iobuf is the choice.
+
 ```
 +------- -cap ------+
 +------- size --+   | => buf
