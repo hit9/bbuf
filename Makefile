@@ -8,7 +8,7 @@ bench:
 	@node bench/bench-v8-string.js
 	@node bench/bench-v8-array-join.js
 	@node bench/bench-node-buffer.js
-	@node bench/bench-iobuf.js
+	@node bench/bench-bbuf.js
 
 clean:
 	rm -rf build
