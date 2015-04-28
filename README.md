@@ -15,7 +15,7 @@ If you want a dynamic buffer but dont want to hold multiple copies in memory
 Example
 -------
 
-```
+```javascript
 var Buf = require('bbuf').Buf;
 
 var buf = new Buf(16);   // created with buf unit
