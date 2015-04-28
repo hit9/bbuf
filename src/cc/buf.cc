@@ -343,11 +343,14 @@ NAN_METHOD(Buf::Inspect) {
     Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     buf_t *buf = buf_new(self->buf->unit);  // ensure not 0
 
-    buf_sprintf(buf, "<bbuf [%d] ", self->buf->size);
+    buf_sprintf(buf, "<bbuf [%d]", self->buf->size);
 
     size_t idx;
 
     for (idx = 0; idx < self->buf->size; idx++) {
+        if (idx == 0)
+            buf_putc(buf, ' ');
+
         if (idx > 32) {  // max display 33 chars
             buf_sprintf(buf, "..");
             break;

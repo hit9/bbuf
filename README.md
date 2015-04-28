@@ -18,16 +18,16 @@ Example
 ```javascript
 var Buf = require('bbuf').Buf;
 
-var buf = new Buf(16);   // created with buf unit
+var buf = new Buf(4); // created with buf unit <bbuf [0]>
 
-buf.put('abcd');          // => 4
-buf.put('1234567890123')  // => 13
-buf.pop(2);               // => 2
-buf.length                // => 15
-buf.cap                   // => 32
-buf.toString()            // => 'abcd12345678901'
-buf.clear()               // => 15
-buf.cap                   // => 0
+buf.put('abc');      // 3    buf => <bbuf [3] 61 62 63>
+buf.put('123');      // 3    buf => <bbuf [6] 61 62 63 31 32 33>
+buf.pop(4);          // 4    buf => <bbuf [2] 61 62>
+buf.length           // 2
+buf.cap              // 8
+buf.toString()       // 'ab'
+buf.clear()          // 2    buf => <bbuf [0]>
+buf.cap              // 0
 ```
 
 API Refs
@@ -113,6 +113,15 @@ buf.put('abcd');  // 4. buf => <bbuf [4] 61 62 63 64>
 buf.slice(0)  // <bbuf [4] 61 62 63 64>
 buf.slice(-1)  // <bbuf [1] 64>
 buf.slice(1, 3)  // <bbuf [2] 62 63>
+```
+
+### buf.bytes()
+
+Get bytes array.
+
+```js
+buf.put('abcd');  // 4
+buf.bytes();  // [ 97, 98, 99, 100  ]
 ```
 
 Benchmark
