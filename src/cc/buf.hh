@@ -30,6 +30,7 @@ public:
     static NAN_METHOD(Copy);
     static NAN_METHOD(Slice);
     static NAN_METHOD(Grow);
+    static NAN_METHOD(Bytes);
     static NAN_GETTER(GetCap);
     static NAN_SETTER(SetCap);
     static NAN_GETTER(GetLength);

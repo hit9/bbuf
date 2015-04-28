@@ -83,6 +83,12 @@ describe('bbuf', function() {
     assert(buf.slice(1, 0).toString() === '');
   });
 
+  it('buf.bytes', function() {
+    var buf = new Buf(4);
+    assert(buf.put('abc') === 3);
+    assert.deepEqual(buf.bytes(), [97, 98, 99]);
+  });
+
   it('get buf[idx]', function() {
     var buf = new Buf(4);
     assert(buf.put('abcdef') === 6);

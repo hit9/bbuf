@@ -9,7 +9,7 @@ using namespace buf;
     if (!Buf::IsStringLike(val)) {                                           \
         return NanThrowTypeError("requires buf/string/buffer");              \
      }
- 
+
 #define ASSERT_ARGS_LEN(len)                                                 \
     if (args.Length() != len) {                                              \
         buf_t *err = buf_new(21);                                            \
@@ -18,7 +18,7 @@ using namespace buf;
         buf_free(err);                                                       \
         return;                                                              \
     }                                                                        \
- 
+
 #define ASSERT_ARGS_LEN_GT(len)                                              \
     if (!(args.Length() > len)) {                                            \
         buf_t *err = buf_new(22);                                            \
@@ -27,7 +27,7 @@ using namespace buf;
         buf_free(err);                                                       \
         return;                                                              \
     }                                                                        \
- 
+
 #define ASSERT_ARGS_LEN_LT(len)                                              \
     if (!(args.Length() < len)) {                                            \
         buf_t *err = buf_new(21);                                            \
@@ -36,17 +36,17 @@ using namespace buf;
         buf_free(err);                                                       \
         return;                                                              \
     }                                                                        \
- 
+
 #define ASSERT_UINT32(val)                                                   \
     if (!val->IsUint32()) {                                                  \
         return NanThrowTypeError("requires unsigned integer");               \
      }
- 
+
 #define ASSERT_INT32(val)                                                    \
     if (!val->IsInt32()) {                                                   \
         return NanThrowTypeError("requires integer");                        \
      }
- 
+
 #define ASSERT_BUF_OK(retv) {                                                \
     if (retv == BUF_ENOMEM) {                                                \
         return NanThrowError("No memory");                                   \
@@ -88,6 +88,7 @@ void Buf::Initialize(Handle<Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(ctor, "copy", Copy);
     NODE_SET_PROTOTYPE_METHOD(ctor, "slice", Slice);
     NODE_SET_PROTOTYPE_METHOD(ctor, "grow", Grow);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "bytes", Bytes);
     NODE_SET_PROTOTYPE_METHOD(ctor, "inspect", Inspect);
     NODE_SET_PROTOTYPE_METHOD(ctor, "toString", ToString);
     // Class methods
@@ -316,14 +317,50 @@ NAN_METHOD(Buf::Clear) {
 }
 
 /**
+ * Public API: - Buf.prototype.bytes
+ */
+NAN_METHOD(Buf::Bytes) {
+    NanScope();
+    ASSERT_ARGS_LEN(0);
+
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+
+    size_t idx;
+    buf_t *buf = self->buf;
+
+    Local<Array> bytes(NanNew<Array>());
+
+    for (idx = 0; idx < buf->size; idx++)
+        bytes->Set(idx, NanNew<Number>(buf->data[idx]));
+    NanReturnValue(bytes);
+}
+
+/**
  * Public API: - Buf.prototype.inspect
  */
 NAN_METHOD(Buf::Inspect) {
     NanScope();
     Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    buf_t *buf = buf_new(self->buf->size + 12);  // ensure not 0
-    buf_sprintf(buf, "<buf [%d] '%.10s%s'>", self->buf->size,
-            buf_str(self->buf), self->buf->size > 10 ? ".." : "");
+    buf_t *buf = buf_new(self->buf->unit);  // ensure not 0
+
+    buf_sprintf(buf, "<bbuf [%d] ", self->buf->size);
+
+    size_t idx;
+
+    for (idx = 0; idx < self->buf->size; idx++) {
+        if (idx > 32) {  // max display 33 chars
+            buf_sprintf(buf, "..");
+            break;
+        } else {
+            buf_sprintf(buf, "%02x", (self->buf->data)[idx]);
+        }
+
+        if (idx != self->buf->size - 1)
+            buf_putc(buf, ' ');
+    }
+
+    buf_putc(buf, '>');
+
     Local<Value> val = NanNew<String>(buf_str(buf));
     buf_free(buf);
     NanReturnValue(val);
