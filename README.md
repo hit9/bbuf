@@ -20,13 +20,13 @@ var Buf = require('bbuf').Buf;
 
 var buf = new Buf(16);   // created with buf unit
 
-buf.put('abcd');          // => 4.  buf => <buf [4] 'abcd'>
-buf.put('1234567890123')  // => 13. buf => <buf [17] 'abc123456..'>
-buf.pop(2);               // => 2.  buf => <buf [2] 'ab'>
-buf.length                // => 15.
-buf.cap                   // => 32.
+buf.put('abcd');          // => 4
+buf.put('1234567890123')  // => 13
+buf.pop(2);               // => 2
+buf.length                // => 15
+buf.cap                   // => 32
 buf.toString()            // => 'abcd12345678901'
-buf.clear()               // => 15.
+buf.clear()               // => 15
 buf.cap                   // => 0
 ```
 
@@ -49,7 +49,7 @@ Put string/buffer/buf object to buf, return bytes put. O(k)
 buf.put('abcd');
 buf.put(buf);
 buf.put(new Buffer('abcd'));
-// buf => <buf [12] 'abcdabcdab..'>
+// buf.toString() => 'abcdabcdabcd'
 ```
 
 ### buf.pop(size)
@@ -61,10 +61,10 @@ Pop buf on the right end, return bytes poped. O(1)
 Get/Set buf size.
 
 ```js
-buf.put('abcd'); // <buf [4] 'abcd'>
+buf.put('abcd'); // buf => <bbuf [4] 61 62 63 64>
 buf.length  // 4
-buf.length = 5; console.log(buf);  // <buf [5] 'abcd '>
-buf.length = 2; console.log(buf);  // <buf [2] 'ab'>
+buf.length = 5;  // buf => <bbuf [5] 61 62 63 64 20> , appended a ' '
+buf.length = 2;  // buf => <bbuf [2] 61 62>  // truncate
 ```
 
 ### buf.cap
@@ -80,7 +80,7 @@ Grow buf capacity to given size.
 Return string from buf.
 
 ```js
-buf.put('abcd'); // <buf [4] 'abcd'>
+buf.put('abcd');
 buf.toString();  // 'abcd'
 ```
 
@@ -100,8 +100,8 @@ buf.cap      // 0
 Copy buf into a new buf instance. O(n)
 
 ```js
-buf.put('abcd');  // <buf [4] 'abcd'>
-buf.copy()  // <buf [4] 'abcd'>
+buf.put('abcd');  // buf => <bbuf [4] 61 62 63 64>
+buf.copy();  // <bbuf [4] 61 62 63 64>
 ```
 
 ### buf.slice(begin[, end])
@@ -109,10 +109,10 @@ buf.copy()  // <buf [4] 'abcd'>
 Slice buf into a new buf instance. O(k)
 
 ```js
-buf.put('abcd');  // <buf [4] 'abcd'>
-buf.slice(0)  // <buf [4] 'abcd'>
-buf.slice(-1)  // <buf [1] 'd'>
-buf.slice(1, 3)  // <buf [2] 'bc'>
+buf.put('abcd');  // 4. buf => <bbuf [4] 61 62 63 64>
+buf.slice(0)  // <bbuf [4] 61 62 63 64>
+buf.slice(-1)  // <bbuf [1] 64>
+buf.slice(1, 3)  // <bbuf [2] 62 63>
 ```
 
 Benchmark
