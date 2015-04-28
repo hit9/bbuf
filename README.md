@@ -1,7 +1,7 @@
 IOBuf
 =====
 
-Utf8 buffer with dynamic size for nodejs/iojs.
+Utf8 buffer with dynamic size for nodejs/iojs, a bit like the `bytearray` in Python.
 
 If you want a dynamic buffer but dont want to hold multiple copies in memory
 , iobuf is the choice.
