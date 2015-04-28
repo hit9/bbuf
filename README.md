@@ -7,7 +7,7 @@ If you want a dynamic buffer but dont want to hold multiple copies in memory
 , iobuf is the choice.
 
 ```
-+------- -cap ------+
++-------- cap ------+
 +------- size --+   | => buf
 |UNIT|UNIT|UNIT|UNIT|
 ```
