@@ -1,10 +1,10 @@
-IOBuf
-=====
+bbuf
+====
 
-Utf8 buffer with dynamic size for nodejs/iojs, a bit like the `bytearray` in Python.
+Bytes buffer with dynamic size for nodejs/iojs, a bit like the `bytearray` in Python.
 
 If you want a dynamic buffer but dont want to hold multiple copies in memory
-, iobuf is the choice.
+, bbuf is the choice.
 
 ```
 +-------- cap ------+
@@ -16,7 +16,7 @@ Example
 -------
 
 ```
-var Buf = require('iobuf').Buf;
+var Buf = require('bbuf').Buf;
 
 var buf = new Buf(16);   // created with buf unit
 
@@ -119,16 +119,14 @@ Benchmark
 ---------
 
 Simple [benchmark](bench.js) between `v8 string + operator`, `v8 array join`,
-`node buffer.write` and `iobuf.put`:
+`node buffer.write` and `bbuf.put`:
 
 ```
 v8 string + operator:    1000000 op in 202 ms   => 4950495ops heapUsed: 76034848
 v8 array join:           1000000 op in 379 ms   => 2638522.4ops heapUsed: 71710880
 node buf fixed size:     1000000 op in 355 ms   => 2816901.4ops heapUsed: 14669800
-iobuf dynamic size:      1000000 op in 371 ms   => 2695417.8ops heapUsed: 36397128
+bbuf dynamic size:       1000000 op in 371 ms   => 2695417.8ops heapUsed: 36397128
 ```
-
-If you want buffer with dynamic size, less memory usage and not so slow, use IOBuf.
 
 License
 --------

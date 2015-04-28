@@ -1,6 +1,6 @@
 {
-  "name": "iobuf",
-  "description": "Utf8 buffer with dynamic size for nodejs/iojs.",
+  "name": "bbuf",
+  "description": "Bytes buffer with dynamic size for nodejs/iojs.",
   "version": "0.0.1",
   "author": "hit9 <hit9@icloud.com>",
   "engines": {

@@ -1,10 +1,10 @@
 'use strict';
 
 var assert = require('assert');
-var iobuf  = require('./index');
-var Buf    = iobuf.Buf;
+var bbuf   = require('./index');
+var Buf    = bbuf.Buf;
 
-describe('iobuf', function() {
+describe('bbuf', function() {
   it('new Buf()', function() {
     assert(new Buf(4));
   });
