@@ -119,6 +119,15 @@ buf.slice(-1)  // <bbuf [1] 64>
 buf.slice(1, 3)  // <bbuf [2] 62 63>
 ```
 
+Don't use `String.prototype.slice.apply(buf, [begin, end])`, because we
+are play with `bytes` but not `chars`:
+
+```js
+buf.put('你好');
+String.prototype.slice.apply(buf, [0, 1]);  // '你'
+buf[0] !== '你';  // true
+```
+
 ### buf.bytes()
 
 Get bytes array.
