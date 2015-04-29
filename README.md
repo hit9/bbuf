@@ -179,7 +179,7 @@ buf.indexOf('d', 1);  // 3
 ```
 
 Don't use `String.prototype.indexOf` for `buf`, if you are trying to find the `byte index`
-instead of `char index`:
+instead of the `char index` (e.g. to parse bytes from a socket):
 
 ```js
 buf.put('你好')
