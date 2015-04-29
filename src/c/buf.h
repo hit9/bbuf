@@ -19,17 +19,21 @@
 #define __BUF_H
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "bool.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define BUF_MAX_SIZE 1024 * 1024 * 1024  // 1gb
+#define MAX_UINT8 256
+#define BUF_MAX_SIZE 16 * 1024 * 1024  //16mb
 
 typedef enum {
     BUF_OK = 0,
@@ -58,6 +62,12 @@ int buf_puts(buf_t *, char *);
 size_t buf_lrm(buf_t *, size_t);
 size_t buf_rrm(buf_t *, size_t);
 int buf_sprintf(buf_t *, const char *, ...);
+bool buf_isspace(buf_t *);
+int buf_cmp(buf_t *, char *);
+bool buf_startswith(buf_t *, char *);
+bool buf_endswith(buf_t *, char *);
+void buf_reverse(buf_t *);
+size_t buf_index(buf_t *, char *);
 
 #ifdef __cplusplus
 }

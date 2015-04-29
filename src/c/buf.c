@@ -180,7 +180,6 @@ buf_lrm(buf_t *buf, size_t size)
 {
     assert(buf != NULL && buf->unit != 0);
 
-
     if (size > buf->size) {
         size_t size_ = buf->size;
         buf->size = 0;
@@ -249,4 +248,125 @@ buf_sprintf(buf_t *buf, const char *fmt, ...)
 
     buf->size += num;
     return BUF_OK;
+}
+
+/**
+ * Compare buf with string. O(n)
+ */
+int
+buf_cmp(buf_t *buf, char *s)
+{
+    return strcmp(buf_str(buf), s);
+}
+
+/**
+ * Test if a buf is space. O(n)
+ */
+bool
+buf_isspace(buf_t *buf)
+{
+    assert(buf != NULL);
+
+    size_t idx;
+
+    for (idx = 0; idx < buf->size; idx++)
+        if (!isspace(buf->data[idx]))
+            return false;
+    if (buf->size > 0)
+        return true;
+    return false;
+}
+
+/**
+ * Test if a buf is startswith a prefix. O(k)
+ */
+bool
+buf_startswith(buf_t *buf, char *prefix)
+{
+    assert(buf != NULL);
+
+    size_t len = strlen(prefix);
+
+    if (len <= buf->size && strncmp((void *)buf->data, prefix, len) == 0)
+        return true;
+    return false;
+}
+
+/**
+ * Test if a buf is startswith a prefix. O(k)
+ */
+bool
+buf_endswith(buf_t *buf, char *suffix)
+{
+    assert(buf != NULL);
+
+    size_t len = strlen(suffix);
+
+    if (len <= buf->size && strncmp(
+                (void *)(buf->data + buf->size - len), suffix, len) == 0)
+        return true;
+    return false;
+}
+
+/**
+ * Reverse buf in place. O(n/2)
+ */
+void
+buf_reverse(buf_t *buf)
+{
+    assert(buf != NULL);
+
+    uint8_t tmp;
+    size_t idx = 0;
+    size_t end = buf->size - 1;
+
+    while (idx < end) {
+        // swap
+        tmp = buf->data[idx];
+        buf->data[idx] = buf->data[end];
+        buf->data[end] = tmp;
+        // move
+        idx ++;
+        end --;
+    }
+}
+
+/**
+ * Search string in buf by Boyer-Moore algorithm.
+ */
+size_t
+buf_index(buf_t *buf, char *sub)
+{
+    assert(buf != NULL);
+
+    size_t len = strlen(sub);
+    size_t last = len - 1;
+    size_t idx;
+
+    size_t table[MAX_UINT8] = {0};
+
+    // build bad char table
+    for (idx = 0; idx < MAX_UINT8; idx++)
+        table[idx] = len;
+    for (idx = 0; idx < len; idx++)
+        table[(uint8_t)sub[idx]] = last - idx;
+
+    // search
+    size_t i, j, k, t, skip;
+
+    for (i = 0; i < buf->size; i += skip) {
+        skip = 0;
+        for (j = 0; j < len; j++) {
+            k = last - j;
+            if (sub[k] != buf->data[i + k]) {
+                t = table[buf->data[i + k]];
+                skip = t > j? t - j : 1;
+                break;
+            }
+        }
+        if (skip == 0)
+            return i;
+    }
+
+    return buf->size;
 }
