@@ -160,13 +160,24 @@ buf.bytes();  // [ 97, 98, 99, 100  ]
 
 Compare string/buffer/buf with this buf, similar to C's `strcmp`. O(min(m, n))
 
-```
+```js
 buf.put('cde');
 buf.cmp('abc');  // 2
 buf.cmp('cde');  // 0
 buf.cmp('mnp');  // -10
 ```
 
+### buf.indexOf(string/buffer/buf[, startIndex])
+
+Find the first index of string/buffer/buf in this buf. (Boyer-Moore algorithm)
+
+```js
+buf.put('abcde');
+buf.indexOf('ab');  // 0
+buf.indexOf('what');  // -1
+buf.indexOf('d', 1);  // 3
+```
+ 
 Benchmark
 ---------
 
