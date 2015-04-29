@@ -82,12 +82,13 @@ void Buf::Initialize(Handle<Object> exports) {
     ctor->InstanceTemplate()->SetAccessor(NanNew<String>("length"), GetLength, SetLength);
     ctor->InstanceTemplate()->SetIndexedPropertyHandler(GetIndex, SetIndex);
     // Prototype
+    NODE_SET_PROTOTYPE_METHOD(ctor, "grow", Grow);
     NODE_SET_PROTOTYPE_METHOD(ctor, "put", Put);
     NODE_SET_PROTOTYPE_METHOD(ctor, "pop", Pop);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "cmp", Cmp);
     NODE_SET_PROTOTYPE_METHOD(ctor, "clear", Clear);
     NODE_SET_PROTOTYPE_METHOD(ctor, "copy", Copy);
     NODE_SET_PROTOTYPE_METHOD(ctor, "slice", Slice);
-    NODE_SET_PROTOTYPE_METHOD(ctor, "grow", Grow);
     NODE_SET_PROTOTYPE_METHOD(ctor, "bytes", Bytes);
     NODE_SET_PROTOTYPE_METHOD(ctor, "inspect", Inspect);
     NODE_SET_PROTOTYPE_METHOD(ctor, "toString", ToString);
@@ -290,6 +291,19 @@ NAN_METHOD(Buf::Pop) {
     Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     NanReturnValue(NanNew<Number>(
                 buf_rrm(self->buf, args[0]->Uint32Value())));
+}
+
+/**
+ * Public API: - Buf.prototype.cmp O(n)
+ */
+NAN_METHOD(Buf::Cmp) {
+    NanScope();
+    ASSERT_ARGS_LEN(1);
+    ASSERT_STRING_LIKE(args[0]);
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    String::Utf8Value tmp(args[0]->ToString());
+    char *val = *tmp;
+    NanReturnValue(NanNew<Number>(buf_cmp(self->buf, val)));
 }
 
 /**
