@@ -118,6 +118,7 @@ describe('bbuf', function() {
     assert(buf.charAt(0) === 'a');
     assert(buf.charAt(1) === 'b');
     assert(buf.charAt(2) === 'c');
+    assert(buf.charAt(100) === undefined);
     buf.clear();
     buf.put('你好');
     assert(buf.charAt(1) !== '你');
