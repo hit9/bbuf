@@ -128,6 +128,17 @@ buf.put('abcd');  // 4
 buf.bytes();  // [ 97, 98, 99, 100  ]
 ```
 
+### buf.cmp(string/buffer/buf)
+
+Compare string/buffer/buf with this buf, similar to C's `strcmp`.
+
+```
+buf.put('cde');
+buf.cmp('abc');  // 2
+buf.cmp('cde');  // 0
+buf.cmp('mnp');  // -10
+```
+
 Benchmark
 ---------
 
