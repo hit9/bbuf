@@ -3,14 +3,16 @@ bbuf
 
 Bytes buffer with dynamic size for nodejs/iojs, a bit like the `bytearray` in Python.
 
-If you want a dynamic buffer but dont want to hold multiple copies in memory
-, bbuf is the choice.
-
 ```
 +------- cap -------+
-+------- size --+   | => buf
++------- size --+   | => buf (uint8 array)
 |UNIT|UNIT|UNIT|UNIT|
 ```
+
+Reasons to start this project:
+
+* Want a dynamic bytes buffer, but node's Buffer requires fixed size.
+* Don't want to hold multiple copies in memory via `Buffer.concat`, `s + s` etc.
 
 Example
 -------
