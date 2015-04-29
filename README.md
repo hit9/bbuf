@@ -92,7 +92,7 @@ buf.toString();  // 'abcd'
 
 ### buf.clear()
 
-Clear buf.
+Clear buf. O(!)
 
 ```js
 buf.put('abcd');
@@ -112,7 +112,7 @@ buf.copy();  // <bbuf [4] 61 62 63 64>
 
 ### buf[idx], buf.charAt(idx)
 
-Index accessors for a buf instance.
+Index accessors for a buf instance. all O(1)
 
 - buf[idx] - Get byte (uint8 value) at index.
 - buf[idx] = 'c' - Set byte at index by a single byte char, or by a byte.
@@ -138,8 +138,8 @@ buf.slice(-1)  // <bbuf [1] 64>
 buf.slice(1, 3)  // <bbuf [2] 62 63>
 ```
 
-Don't use `String.prototype.slice.apply(buf, [begin, end])`, because we
-are playing with `bytes` but not `chars`:
+Don't use `String.prototype.slice.apply(buf, [begin, end])`,
+because we are playing with `bytes` but not `chars`:
 
 ```js
 buf.put('你好');
@@ -149,7 +149,7 @@ buf.charAt(0) !== '你';  // true
 
 ### buf.bytes()
 
-Get bytes array.
+Get bytes array. O(n)
 
 ```js
 buf.put('abcd');  // 4
@@ -158,7 +158,7 @@ buf.bytes();  // [ 97, 98, 99, 100  ]
 
 ### buf.cmp(string/buffer/buf)
 
-Compare string/buffer/buf with this buf, similar to C's `strcmp`.
+Compare string/buffer/buf with this buf, similar to C's `strcmp`. O(min(m, n))
 
 ```
 buf.put('cde');

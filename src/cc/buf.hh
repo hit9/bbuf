@@ -31,6 +31,7 @@ public:
     static NAN_METHOD(Bytes);
     static NAN_METHOD(CharAt);
     static NAN_METHOD(Clear);
+    static NAN_METHOD(IndexOf);
     static NAN_METHOD(ToString);
     static NAN_METHOD(Inspect);
     static NAN_GETTER(GetCap);

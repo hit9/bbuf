@@ -132,4 +132,14 @@ describe('bbuf', function() {
     assert(buf.cmp('fgh') < 0);
     assert(buf.cmp('efg') === 0);
   });
+
+  it('buf.indexOf', function() {
+    var buf = new Buf(10);
+    buf.put('hello world');
+    assert(buf.indexOf('h') === 0);
+    assert(buf.indexOf('h', 1) === -1);
+    assert(buf.indexOf('e', 1) === 1);
+    assert(buf.indexOf('world') === 6);
+    assert(buf.indexOf('what') === -1);
+  });
 });

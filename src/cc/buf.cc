@@ -96,6 +96,7 @@ void Buf::Initialize(Handle<Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(ctor, "slice", Slice);
     NODE_SET_PROTOTYPE_METHOD(ctor, "bytes", Bytes);
     NODE_SET_PROTOTYPE_METHOD(ctor, "charAt", CharAt);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "indexOf", IndexOf);
     NODE_SET_PROTOTYPE_METHOD(ctor, "inspect", Inspect);
     NODE_SET_PROTOTYPE_METHOD(ctor, "toString", ToString);
     // Class methods
@@ -418,7 +419,7 @@ NAN_METHOD(Buf::Inspect) {
  */
 NAN_METHOD(Buf::Copy) {
     NanScope();
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     Local<Value> argv[1] = { NanNew<Number>(self->buf->unit) };
     Local<FunctionTemplate> ctor = NanNew<FunctionTemplate>(constructor);
     Local<Object> inst = ctor->GetFunction()->NewInstance(1, argv);
@@ -440,7 +441,7 @@ NAN_METHOD(Buf::Slice) {
     if (args.Length() > 1)
         ASSERT_INT32(args[1]);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
 
     // make a copy
     Local<Value> argv[1] = { NanNew<Number>(self->buf->unit) };
@@ -480,4 +481,29 @@ NAN_METHOD(Buf::Slice) {
     while (idx < len)
         buf_putc(copy->buf, (self->buf->data)[begin + idx++]);
     NanReturnValue(inst);
+}
+
+/**
+ * Public API: - Buf.prototype.indexOf. Boyer Moore
+ */
+NAN_METHOD(Buf::IndexOf) {
+    NanScope();
+    ASSERT_ARGS_LEN_GT(0);
+    ASSERT_ARGS_LEN_LT(3);
+    ASSERT_STRING_LIKE(args[0]);
+
+    size_t start = 0;
+    if (args.Length() == 2)
+        start = args[1]->Uint32Value();
+
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    String::Utf8Value tmp(args[0]->ToString());
+    char *val = *tmp;
+    size_t idx = buf_index(self->buf, val, start);
+
+    if (idx == self->buf->size) {
+        NanReturnValue(NanNew<Number>(-1));
+    } else {
+        NanReturnValue(NanNew<Number>(idx));
+    }
 }
