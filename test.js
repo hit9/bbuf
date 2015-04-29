@@ -141,5 +141,9 @@ describe('bbuf', function() {
     assert(buf.indexOf('e', 1) === 1);
     assert(buf.indexOf('world') === 6);
     assert(buf.indexOf('what') === -1);
+    buf.clear();
+    buf.put('明天');
+    assert(buf.indexOf('what') === -1);
+    assert(buf.indexOf('天') === 3);
   });
 });
