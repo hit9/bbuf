@@ -177,7 +177,16 @@ buf.indexOf('ab');  // 0
 buf.indexOf('what');  // -1
 buf.indexOf('d', 1);  // 3
 ```
- 
+
+Don't use `String.prototype.indexOf` for `buf`, if you are trying to find the `byte index`
+instead of `char index`:
+
+```js
+buf.put('你好')
+buf.indexOf('好')  // 3
+String.prototype.indexOf.call(buf, '好')  // 1
+```
+
 Benchmark
 ---------
 
