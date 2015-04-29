@@ -64,6 +64,7 @@ size_t buf_rrm(buf_t *, size_t);
 int buf_sprintf(buf_t *, const char *, ...);
 bool buf_isspace(buf_t *);
 int buf_cmp(buf_t *, char *);
+bool buf_equals(buf_t *, char *);
 bool buf_startswith(buf_t *, char *);
 bool buf_endswith(buf_t *, char *);
 void buf_reverse(buf_t *);
