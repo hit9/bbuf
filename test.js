@@ -107,4 +107,13 @@ describe('bbuf', function() {
     assert(buf[3] === 'g');
     assert.throws(function() {buf[10] = 'm'}, Error);
   });
+
+  it('buf.cmp', function() {
+    var buf = new Buf(4);
+    assert(buf.cmp('') === 0);
+    buf.put('efg');
+    assert(buf.cmp('abc') > 0);
+    assert(buf.cmp('fgh') < 0);
+    assert(buf.cmp('efg') === 0);
+  });
 });
