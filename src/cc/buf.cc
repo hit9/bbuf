@@ -406,8 +406,8 @@ NAN_METHOD(Buf::Slice) {
 
     // slice data
 
-    int begin = args[0]->Int32Value();
-    int end;
+    long begin = args[0]->Int32Value();
+    long end;
 
     size_t len;
     size_t size = self->buf->size;
