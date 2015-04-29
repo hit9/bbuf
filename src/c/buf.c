@@ -335,7 +335,7 @@ buf_reverse(buf_t *buf)
  * Search string in buf by Boyer-Moore algorithm.
  */
 size_t
-buf_index(buf_t *buf, char *sub)
+buf_index(buf_t *buf, char *sub, size_t start)
 {
     assert(buf != NULL);
 
@@ -354,7 +354,7 @@ buf_index(buf_t *buf, char *sub)
     // search
     size_t i, j, k, t, skip;
 
-    for (i = 0; i < buf->size; i += skip) {
+    for (i = start; i < buf->size; i += skip) {
         skip = 0;
         for (j = 0; j < len; j++) {
             k = last - j;

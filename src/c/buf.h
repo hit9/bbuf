@@ -67,7 +67,7 @@ int buf_cmp(buf_t *, char *);
 bool buf_startswith(buf_t *, char *);
 bool buf_endswith(buf_t *, char *);
 void buf_reverse(buf_t *);
-size_t buf_index(buf_t *, char *);
+size_t buf_index(buf_t *, char *, size_t);
 
 #ifdef __cplusplus
 }
