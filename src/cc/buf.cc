@@ -37,6 +37,11 @@ using namespace buf;
         return;                                                              \
     }                                                                        \
 
+#define ASSERT_UINT8(val)                                                    \
+    if (!val->IsUint32() || val->Uint32Value() > 255) {                      \
+        return NanThrowTypeError("requires unsigned 8 bit integer");         \
+     }
+
 #define ASSERT_UINT32(val)                                                   \
     if (!val->IsUint32()) {                                                  \
         return NanThrowTypeError("requires unsigned integer");               \
@@ -219,33 +224,36 @@ NAN_INDEX_GETTER(Buf::GetIndex) {
     if (index >= self->buf->size) {
         NanReturnUndefined();
     } else {
-        char s[] = {0, 0};
-        s[0] = (self->buf->data)[index];
-        NanReturnValue(NanNew<String>(s));
+        NanReturnValue(NanNew<Number>(self->buf->data[index]));
     }
 }
 
 /**
- * Public API: - buf[idx] = 'c' O(1)
+ * Public API: - buf[idx] = 'c' or buf[idx] = 97. O(1)
  */
 NAN_INDEX_SETTER(Buf::SetIndex) {
     NanScope();
-    ASSERT_STRING_LIKE(value);
 
     Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
 
     if (index >= self->buf->size) {
         NanThrowError("index cannot larger than size");
     } else {
-        Local<String> val = value->ToString();
-
-        if (val->Length() != 1) {
-            NanThrowError("requires a single char");
-        } else {
+        if (Buf::IsStringLike(value)) {   // set as string
+            Local<String> val = value->ToString();
             String::Utf8Value tmp(val);
             char *s = *tmp;
-            (self->buf->data)[index] = s[0];
-            NanReturnValue(NanNew<String>(s));
+
+            if (strlen(s) != 1) {
+                NanThrowError("requires only 1 byte char");
+            } else {
+                (self->buf->data)[index] = s[0];
+                NanReturnValue(NanNew<String>(s));
+            }
+        } else {
+            ASSERT_UINT8(value);
+            self->buf->data[index] = value->Uint32Value();
+            NanReturnValue(NanNew<Number>(self->buf->data[index]));
         }
     }
 }

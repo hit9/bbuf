@@ -92,9 +92,10 @@ describe('bbuf', function() {
   it('get buf[idx]', function() {
     var buf = new Buf(4);
     assert(buf.put('abcdef') === 6);
-    assert(buf[0] === 'a');
-    assert(buf[1] === 'b');
-    assert(buf[3] === 'd');
+    assert(buf[0] === 97);
+    assert(buf[1] === 98);
+    assert(buf[2] === 99);
+    assert(buf[3] === 100);
     assert(buf[100] === undefined);
     assert(buf[-1] === undefined);
     assert(buf['abc'] === undefined);
@@ -104,8 +105,11 @@ describe('bbuf', function() {
     var buf = new Buf(4);
     assert(buf.put('abcdef') === 6);
     assert((buf[3] = 'g') === 'g');
-    assert(buf[3] === 'g');
+    assert(buf[3] === 'g'.charCodeAt(0));
     assert.throws(function() {buf[10] = 'm'}, Error);
+    assert.throws(function() {buf[1] = 256}, Error);
+    assert.throws(function() {buf[1] = 'abc'}, Error);
+    assert.throws(function() {buf[1] = '你'}, Error);
   });
 
   it('buf.cmp', function() {

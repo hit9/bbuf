@@ -108,6 +108,22 @@ buf.put('abcd');  // buf => <bbuf [4] 61 62 63 64>
 buf.copy();  // <bbuf [4] 61 62 63 64>
 ```
 
+### buf[idx], buf.charAt(idx)
+
+Get/Set byte/char by index on buf:
+
+  - buf[idx] - Get byte (uint8 value) at index.
+  - buf[idx] = 'c' - Set byte at index by a single byte char, or by a byte.
+  - buf.charAt(idx) - Get byte as string at index.
+
+```js
+buf.put('abced');
+buf[0];   // 97
+buf[0] = 'c';  // 'c'
+buf[2] = 97;  // 97
+buf.toString(); // 'cbaed'
+```
+
 ### buf.slice(begin[, end])
 
 Slice buf into a new buf instance. O(k)
@@ -120,7 +136,7 @@ buf.slice(1, 3)  // <bbuf [2] 62 63>
 ```
 
 Don't use `String.prototype.slice.apply(buf, [begin, end])`, because we
-are play with `bytes` but not `chars`:
+are playing with `bytes` but not `chars`:
 
 ```js
 buf.put('你好');

@@ -29,6 +29,7 @@ public:
     static NAN_METHOD(Copy);
     static NAN_METHOD(Slice);
     static NAN_METHOD(Bytes);
+    static NAN_METHOD(ByteAt);
     static NAN_METHOD(Clear);
     static NAN_METHOD(ToString);
     static NAN_METHOD(Inspect);
