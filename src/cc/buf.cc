@@ -95,6 +95,7 @@ void Buf::Initialize(Handle<Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(ctor, "copy", Copy);
     NODE_SET_PROTOTYPE_METHOD(ctor, "slice", Slice);
     NODE_SET_PROTOTYPE_METHOD(ctor, "bytes", Bytes);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "charAt", CharAt);
     NODE_SET_PROTOTYPE_METHOD(ctor, "inspect", Inspect);
     NODE_SET_PROTOTYPE_METHOD(ctor, "toString", ToString);
     // Class methods
@@ -243,7 +244,6 @@ NAN_INDEX_SETTER(Buf::SetIndex) {
             Local<String> val = value->ToString();
             String::Utf8Value tmp(val);
             char *s = *tmp;
-
             if (strlen(s) != 1) {
                 NanThrowError("requires only 1 byte char");
             } else {
@@ -255,6 +255,28 @@ NAN_INDEX_SETTER(Buf::SetIndex) {
             self->buf->data[index] = value->Uint32Value();
             NanReturnValue(NanNew<Number>(self->buf->data[index]));
         }
+    }
+}
+
+/**
+ * Public API: - Buf.prototype.charAt O(1)
+ */
+NAN_METHOD(Buf::CharAt) {
+    NanScope();
+    ASSERT_ARGS_LEN(1);
+    ASSERT_UINT32(args[0]);
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    size_t idx = args[0]->Uint32Value();
+
+    if (idx >= self->buf->size) {
+        NanReturnUndefined();
+    } else {
+        // To make an array sized 2 but not 1:
+        // on some plats, this `{0}` wont tell v8 where the
+        // '\0' terminates the string.
+        char s[2] = {0, 0};
+        s[0] = self->buf->data[idx];
+        NanReturnValue(NanNew<String>(s));
     }
 }
 

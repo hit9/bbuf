@@ -112,6 +112,17 @@ describe('bbuf', function() {
     assert.throws(function() {buf[1] = '你'}, Error);
   });
 
+  it('buf.charAt', function() {
+    var buf = new Buf(4);
+    assert(buf.put('abcdef') === 6);
+    assert(buf.charAt(0) === 'a');
+    assert(buf.charAt(1) === 'b');
+    assert(buf.charAt(2) === 'c');
+    buf.clear();
+    buf.put('你好');
+    assert(buf.charAt(1) !== '你');
+  });
+
   it('buf.cmp', function() {
     var buf = new Buf(4);
     assert(buf.cmp('') === 0);

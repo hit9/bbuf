@@ -110,11 +110,11 @@ buf.copy();  // <bbuf [4] 61 62 63 64>
 
 ### buf[idx], buf.charAt(idx)
 
-Get/Set byte/char by index on buf:
+Index accessors for a buf instance.
 
-  - buf[idx] - Get byte (uint8 value) at index.
-  - buf[idx] = 'c' - Set byte at index by a single byte char, or by a byte.
-  - buf.charAt(idx) - Get byte as string at index.
+- buf[idx] - Get byte (uint8 value) at index.
+- buf[idx] = 'c' - Set byte at index by a single byte char, or by a byte.
+- buf.charAt(idx) - Get byte as string at index.
 
 ```js
 buf.put('abced');
@@ -122,6 +122,7 @@ buf[0];   // 97
 buf[0] = 'c';  // 'c'
 buf[2] = 97;  // 97
 buf.toString(); // 'cbaed'
+buf.charAt(0); // 'c'
 ```
 
 ### buf.slice(begin[, end])
@@ -141,7 +142,7 @@ are playing with `bytes` but not `chars`:
 ```js
 buf.put('你好');
 String.prototype.slice.apply(buf, [0, 1]);  // '你'
-buf[0] !== '你';  // true
+buf.charAt(0) !== '你';  // true
 ```
 
 ### buf.bytes()
