@@ -75,6 +75,10 @@ Get buf capacity.
 
 Grow buf capacity to given size.
 
+(We dont need to grow size manually to put data onto buf,
+ buf this method may reduce memory allocation times if the
+ result bytes size are known to us).
+
 ### buf.toString()
 
 Return string from buf.
