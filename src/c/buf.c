@@ -327,8 +327,12 @@ buf_reverse(buf_t *buf)
 {
     assert(buf != NULL);
 
+    if (buf->size == 0)
+        return;
+
     uint8_t tmp;
     size_t idx = 0;
+    // buf->size >= 1 was already gauranteed
     size_t end = buf->size - 1;
 
     while (idx < end) {
