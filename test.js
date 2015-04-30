@@ -146,4 +146,14 @@ describe('bbuf', function() {
     assert(buf.indexOf('what') === -1);
     assert(buf.indexOf('天') === 3);
   });
+
+  it('buf.isspace', function() {
+    var buf = new Buf(10);
+    assert(!buf.isSpace());
+    buf.put('hello world');
+    assert(!buf.isSpace());
+    buf.clear();
+    buf.put(' \t\n\r');
+    assert(buf.isSpace());
+  });
 });

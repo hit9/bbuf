@@ -97,6 +97,7 @@ void Buf::Initialize(Handle<Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(ctor, "bytes", Bytes);
     NODE_SET_PROTOTYPE_METHOD(ctor, "charAt", CharAt);
     NODE_SET_PROTOTYPE_METHOD(ctor, "indexOf", IndexOf);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "isSpace", IsSpace);
     NODE_SET_PROTOTYPE_METHOD(ctor, "inspect", Inspect);
     NODE_SET_PROTOTYPE_METHOD(ctor, "toString", ToString);
     // Class methods
@@ -266,7 +267,7 @@ NAN_METHOD(Buf::CharAt) {
     NanScope();
     ASSERT_ARGS_LEN(1);
     ASSERT_UINT32(args[0]);
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     size_t idx = args[0]->Uint32Value();
 
     if (idx >= self->buf->size) {
@@ -288,7 +289,7 @@ NAN_METHOD(Buf::Grow) {
     NanScope();
     ASSERT_ARGS_LEN(1);
     ASSERT_UINT32(args[0]);
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.This());
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     int retv = buf_grow(self->buf, args[0]->Uint32Value());
     ASSERT_BUF_OK(retv);
     NanReturnValue(NanNew<Number>(self->buf->cap));
@@ -506,4 +507,14 @@ NAN_METHOD(Buf::IndexOf) {
     } else {
         NanReturnValue(NanNew<Number>(idx));
     }
+}
+
+/**
+ * Public API: - Buf.prototype.isSpace
+ */
+NAN_METHOD(Buf::IsSpace) {
+    NanScope();
+    ASSERT_ARGS_LEN(0);
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    NanReturnValue(NanNew<Boolean>(buf_isspace(self->buf)));
 }
