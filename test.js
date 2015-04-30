@@ -30,6 +30,8 @@ describe('bbuf', function() {
     assert(buf.put('abc') === 3);
     assert(buf.toString() === 'abcabc');
     assert(buf.cap === 8);
+    buf.clear();
+    assert(buf.put('中文') === 6);
   });
 
   it('buf.toString', function() {
@@ -131,6 +133,22 @@ describe('bbuf', function() {
     assert(buf.cmp('abc') > 0);
     assert(buf.cmp('fgh') < 0);
     assert(buf.cmp('efg') === 0);
+    buf.clear();
+    buf.put('中文');
+    assert(buf.cmp(buf) == 0);
+    assert(buf.slice(1).cmp(buf.slice(1)) == 0);
+  });
+
+  it('buf.cmp', function() {
+    var buf = new Buf(4);
+    assert(buf.equals(''));
+    buf.put('efg');
+    assert(!buf.equals('abc'));
+    assert(buf.equals('efg'));
+    buf.clear();
+    buf.put('中文');
+    assert(buf.equals(buf));
+    assert(buf.equals(buf.copy()));
   });
 
   it('buf.indexOf', function() {
@@ -145,6 +163,8 @@ describe('bbuf', function() {
     buf.put('明天');
     assert(buf.indexOf('what') === -1);
     assert(buf.indexOf('天') === 3);
+    assert(buf.indexOf(buf.slice(1)) === 1);
+    assert(buf.indexOf(buf.slice(0, 4)) === 0);
   });
 
   it('buf.isspace', function() {
@@ -155,5 +175,30 @@ describe('bbuf', function() {
     buf.clear();
     buf.put(' \t\n\r');
     assert(buf.isSpace());
+  });
+
+  it('buf.startsWith', function() {
+    var buf = new Buf(10);
+    buf.put('hello world');
+    assert(buf.startsWith('hello'));
+    assert(!buf.startsWith('abcd'));
+    buf.clear();
+    buf.put('你好');
+    assert(buf.startsWith(buf.slice(0, 3)));
+    assert(buf.startsWith(buf.slice(0, 2)));
+    assert(buf.startsWith('你'));
+  });
+
+  it('buf.endsWith', function() {
+    var buf = new Buf(10);
+    buf.put('hello world');
+    assert(buf.endsWith('world'));
+    assert(!buf.endsWith('abcd'));
+    buf.clear();
+    buf.put('你好');
+    assert(buf.endsWith(buf.slice(5)));
+    assert(buf.endsWith(buf.slice(3)));
+    assert(!buf.endsWith(buf.slice(1, 3)));
+    assert(buf.endsWith('好'));
   });
 });

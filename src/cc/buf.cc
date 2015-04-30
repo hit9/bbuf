@@ -8,7 +8,7 @@ using namespace buf;
 #define ASSERT_STRING_LIKE(val)                                              \
     if (!Buf::IsStringLike(val)) {                                           \
         return NanThrowTypeError("requires buf/string/buffer");              \
-     }
+     }                                                                       \
 
 #define ASSERT_ARGS_LEN(len)                                                 \
     if (args.Length() != len) {                                              \
@@ -97,7 +97,10 @@ void Buf::Initialize(Handle<Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(ctor, "bytes", Bytes);
     NODE_SET_PROTOTYPE_METHOD(ctor, "charAt", CharAt);
     NODE_SET_PROTOTYPE_METHOD(ctor, "indexOf", IndexOf);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "equals", Equals);
     NODE_SET_PROTOTYPE_METHOD(ctor, "isSpace", IsSpace);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "startsWith", StartsWith);
+    NODE_SET_PROTOTYPE_METHOD(ctor, "endsWith", EndsWith);
     NODE_SET_PROTOTYPE_METHOD(ctor, "inspect", Inspect);
     NODE_SET_PROTOTYPE_METHOD(ctor, "toString", ToString);
     // Class methods
@@ -124,6 +127,21 @@ bool Buf::IsStringLike(Handle<Value> val) {
 bool Buf::IsStringLike(Handle<Object> obj) {
     return obj->IsString() || Buffer::HasInstance(obj) ||
         Buf::HasInstance(obj);
+}
+
+char *Buf::StringLikeToChars(Handle<Value> val) {
+    return Buf::StringLikeToChars(val.As<Object>());
+}
+
+char *Buf::StringLikeToChars(Handle<Object> obj) {
+    if (Buf::HasInstance(obj)) {
+        Buf *buf = ObjectWrap::Unwrap<Buf>(obj);
+        return buf_str(buf->buf);
+    } else {
+        Local<String> val = obj->ToString();
+        String::Utf8Value str(val);
+        return (char *)*str;
+    }
 }
 
 /**
@@ -243,14 +261,12 @@ NAN_INDEX_SETTER(Buf::SetIndex) {
         NanThrowError("index cannot larger than size");
     } else {
         if (Buf::IsStringLike(value)) {   // set as string
-            Local<String> val = value->ToString();
-            String::Utf8Value tmp(val);
-            char *s = *tmp;
-            if (strlen(s) != 1) {
+            char *str = Buf::StringLikeToChars(value);
+            if (strlen(str) != 1) {
                 NanThrowError("requires only 1 byte char");
             } else {
-                (self->buf->data)[index] = s[0];
-                NanReturnValue(NanNew<String>(s));
+                (self->buf->data)[index] = str[0];
+                NanReturnValue(NanNew<String>(str));
             }
         } else {
             ASSERT_UINT8(value);
@@ -304,10 +320,9 @@ NAN_METHOD(Buf::Put) {
     ASSERT_STRING_LIKE(args[0]);
 
     Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    String::Utf8Value tmp(args[0]->ToString());
-    char *val = *tmp;
+    char *str = Buf::StringLikeToChars(args[0]);
     size_t size = self->buf->size;
-    int retv = buf_puts(self->buf, val);
+    int retv = buf_puts(self->buf, str);
     ASSERT_BUF_OK(retv);
     NanReturnValue(NanNew<Number>(self->buf->size - size));
 }
@@ -333,10 +348,22 @@ NAN_METHOD(Buf::Cmp) {
     ASSERT_ARGS_LEN(1);
     ASSERT_STRING_LIKE(args[0]);
     Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    String::Utf8Value tmp(args[0]->ToString());
-    char *val = *tmp;
-    NanReturnValue(NanNew<Number>(buf_cmp(self->buf, val)));
+    char *str = Buf::StringLikeToChars(args[0]);
+    NanReturnValue(NanNew<Number>(buf_cmp(self->buf, str)));
 }
+
+/**
+ * Public API: - Buf.prototype.equals O(n)
+ */
+NAN_METHOD(Buf::Equals) {
+    NanScope();
+    ASSERT_ARGS_LEN(1);
+    ASSERT_STRING_LIKE(args[0]);
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    char *str = Buf::StringLikeToChars(args[0]);
+    NanReturnValue(NanNew<Boolean>(buf_equals(self->buf, str)));
+}
+
 
 /**
  * Public API: - Buf.prototype.toString  O(1)
@@ -498,9 +525,8 @@ NAN_METHOD(Buf::IndexOf) {
         start = args[1]->Uint32Value();
 
     Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    String::Utf8Value tmp(args[0]->ToString());
-    char *val = *tmp;
-    size_t idx = buf_index(self->buf, val, start);
+    char *str = Buf::StringLikeToChars(args[0]);
+    size_t idx = buf_index(self->buf, str, start);
 
     if (idx == self->buf->size) {
         NanReturnValue(NanNew<Number>(-1));
@@ -510,11 +536,35 @@ NAN_METHOD(Buf::IndexOf) {
 }
 
 /**
- * Public API: - Buf.prototype.isSpace
+ * Public API: - Buf.prototype.isSpace. O(n)
  */
 NAN_METHOD(Buf::IsSpace) {
     NanScope();
     ASSERT_ARGS_LEN(0);
     Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
     NanReturnValue(NanNew<Boolean>(buf_isspace(self->buf)));
+}
+
+/**
+ * Public API: - Buf.prototype.startsWith. O(min(n, k))
+ */
+NAN_METHOD(Buf::StartsWith) {
+    NanScope();
+    ASSERT_ARGS_LEN(1);
+    ASSERT_STRING_LIKE(args[0]);
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    char *str = Buf::StringLikeToChars(args[0]);
+    NanReturnValue(NanNew<Boolean>(buf_startswith(self->buf, str)));
+}
+
+/**
+ * Public API: - Buf.prototype.endsWith. O(min(n, k))
+ */
+NAN_METHOD(Buf::EndsWith) {
+    NanScope();
+    ASSERT_ARGS_LEN(1);
+    ASSERT_STRING_LIKE(args[0]);
+    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    char *str = Buf::StringLikeToChars(args[0]);
+    NanReturnValue(NanNew<Boolean>(buf_endswith(self->buf, str)));
 }

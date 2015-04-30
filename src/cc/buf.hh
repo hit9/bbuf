@@ -18,8 +18,6 @@ public:
     static void Initialize(Handle<Object> exports);
     static bool HasInstance(Handle<Value> val);
     static bool HasInstance(Handle<Object> obj);
-    static bool IsStringLike(Handle<Value> val);
-    static bool IsStringLike(Handle<Object> obj);
     static NAN_METHOD(IsBuf);
     static NAN_METHOD(New);
     static NAN_METHOD(Grow);
@@ -31,8 +29,11 @@ public:
     static NAN_METHOD(Bytes);
     static NAN_METHOD(CharAt);
     static NAN_METHOD(Clear);
+    static NAN_METHOD(Equals);
     static NAN_METHOD(IndexOf);
     static NAN_METHOD(IsSpace);
+    static NAN_METHOD(StartsWith);
+    static NAN_METHOD(EndsWith);
     static NAN_METHOD(ToString);
     static NAN_METHOD(Inspect);
     static NAN_GETTER(GetCap);
@@ -42,6 +43,10 @@ public:
     static NAN_INDEX_GETTER(GetIndex);
     static NAN_INDEX_SETTER(SetIndex);
 private:
+    static bool IsStringLike(Handle<Value> val);
+    static bool IsStringLike(Handle<Object> obj);
+    static char *StringLikeToChars(Handle<Value> val);
+    static char *StringLikeToChars(Handle<Object> obj);
     buf_t* buf;
 };
 };

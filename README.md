@@ -156,7 +156,7 @@ buf.put('abcd');  // 4
 buf.bytes();  // [ 97, 98, 99, 100  ]
 ```
 
-### buf.cmp(string/buffer/buf)
+### buf.cmp/equals(string/buffer/buf)
 
 Compare string/buffer/buf with this buf, similar to C's `strcmp`. O(min(m, n))
 
@@ -165,6 +165,8 @@ buf.put('cde');
 buf.cmp('abc');  // 2
 buf.cmp('cde');  // 0
 buf.cmp('mnp');  // -10
+buf.equals('cde');  // true
+buf.equals(buf.copy());  // true
 ```
 
 ### buf.indexOf(string/buffer/buf[, startIndex])
@@ -185,6 +187,20 @@ instead of the `char index` (e.g. to parse bytes from a socket):
 buf.put('你好')
 buf.indexOf('好')  // 3
 String.prototype.indexOf.call(buf, '好')  // 1
+```
+
+### buf.isSpace()
+
+Test if the buf is only maked up of spaces . (`' \t\n\r\v\f'`) O(n)
+
+### buf.startsWith/endsWith(string/buffer/buf)
+
+Test if the buf starts/ends with `string/buffer/buf`. (Note that we are talking about bytes, not chars). O(min(n, k))
+
+```js
+buf.put('abcde');
+buf.startsWith('ab');  // true
+buf.endsWith('de');   // true
 ```
 
 Benchmark
