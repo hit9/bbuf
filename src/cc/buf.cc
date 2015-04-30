@@ -317,14 +317,41 @@ NAN_METHOD(Buf::Grow) {
 NAN_METHOD(Buf::Put) {
     NanScope();
     ASSERT_ARGS_LEN(1);
-    ASSERT_STRING_LIKE(args[0]);
 
     Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    char *str = Buf::StringLikeToChars(args[0]);
-    size_t size = self->buf->size;
-    int retv = buf_puts(self->buf, str);
-    ASSERT_BUF_OK(retv);
-    NanReturnValue(NanNew<Number>(self->buf->size - size));
+    buf_t *buf = self->buf;
+    size_t size = buf->size;
+
+    int retv;
+
+    if (Buf::IsStringLike(args[0])) {
+        // string/buffer/buf
+        char *str = Buf::StringLikeToChars(args[0]);
+        retv = buf_puts(buf, str);
+        ASSERT_BUF_OK(retv);
+    } else if (args[0]->IsArray()) {
+        // bytes array
+        Local<Value> item;
+        Handle<Array> arr = Handle<Array>::Cast(args[0]);
+
+        size_t idx;
+        size_t len = arr->Length();
+        retv = buf_grow(buf, buf->size + len);
+        ASSERT_BUF_OK(retv);
+
+        for (idx = 0; idx < len; idx++) {
+            item = arr->Get(idx);
+            ASSERT_UINT8(item);
+            buf_putc(buf, item->Uint32Value());
+        }
+    } else if (args[0]->IsNumber()) {
+        ASSERT_UINT8(args[0]);
+        retv = buf_putc(buf, args[0]->Uint32Value());
+        ASSERT_BUF_OK(retv);
+    } else {
+        return NanThrowTypeError("requires 1 argument, string/buffer/buf/array/number");
+    }
+    NanReturnValue(NanNew<Number>(buf->size - size));
 }
 
 /**

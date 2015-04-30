@@ -30,6 +30,11 @@ describe('bbuf', function() {
     assert(buf.put('abc') === 3);
     assert(buf.toString() === 'abcabc');
     assert(buf.cap === 8);
+    assert(buf.put(97) === 1);
+    assert(buf.toString() === 'abcabca');
+    assert(buf.put([98, 99]) === 2);
+    assert(buf.length === 9);
+    assert(buf.cap === 12);
     buf.clear();
     assert(buf.put('中文') === 6);
   });
