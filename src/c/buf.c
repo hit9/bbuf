@@ -296,11 +296,14 @@ buf_startswith(buf_t *buf, char *prefix)
 {
     assert(buf != NULL);
 
-    size_t len = strlen(prefix);
+    size_t idx = 0;
 
-    if (len <= buf->size && strncmp((void *)buf->data, prefix, len) == 0)
-        return true;
-    return false;
+    while (idx < buf->size && prefix[idx] != '\0') {
+        if (buf->data[idx] != (uint8_t)prefix[idx])
+            return false;
+        idx++;
+    }
+    return true;
 }
 
 /**
@@ -311,12 +314,18 @@ buf_endswith(buf_t *buf, char *suffix)
 {
     assert(buf != NULL);
 
-    size_t len = strlen(suffix);
+    size_t len = 0;
+    size_t idx = 0;
 
-    if (len <= buf->size && strncmp(
-                (void *)(buf->data + buf->size - len), suffix, len) == 0)
-        return true;
-    return false;
+    while (suffix[len] != '\0') {len++;}
+
+    while (idx < buf->size && idx < len) {
+        // buf->size >= 1 was already gauranteed
+        if (buf->data[buf->size - 1 - idx] != (uint8_t)suffix[len - 1 - idx])
+            return false;
+        idx++;
+    }
+    return true;
 }
 
 /**
