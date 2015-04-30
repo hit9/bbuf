@@ -45,7 +45,7 @@ Test if an object is a Buf instance.
 
 ### buf.put(string/buffer/buf/byte/array)
 
-Put string/buffer/buf object to buf, return bytes put. O(k)
+Put string/buffer/buf/byte/bytes-array object to buf, return bytes put. O(k)
 
 ```js
 buf.put('abcd'); // 4
