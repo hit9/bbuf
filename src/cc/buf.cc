@@ -349,7 +349,7 @@ NAN_METHOD(Buf::Put) {
         retv = buf_putc(buf, args[0]->Uint32Value());
         ASSERT_BUF_OK(retv);
     } else {
-        return NanThrowTypeError("requires 1 argument, string/buffer/buf/array/number");
+        return NanThrowTypeError("requires string/buffer/buf/array/number");
     }
     NanReturnValue(NanNew<Number>(buf->size - size));
 }

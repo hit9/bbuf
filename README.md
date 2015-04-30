@@ -43,15 +43,17 @@ Create a buf instance by buffer unit size.
 
 Test if an object is a Buf instance.
 
-### buf.put(string/buffer/buf)
+### buf.put(string/buffer/buf/byte/array)
 
 Put string/buffer/buf object to buf, return bytes put. O(k)
 
 ```js
-buf.put('abcd');
+buf.put('abcd'); // 4
 buf.put(buf);
 buf.put(new Buffer('abcd'));
-// buf.toString() => 'abcdabcdabcd'
+buf.put(97);
+buf.put([98, 99, 100]);
+// buf.toString() => 'abcdabcdabcdabcd'
 ```
 
 ### buf.pop(size)
