@@ -1,9 +1,11 @@
+// Bytes buffer addon with dynamic size for nodejs/iojs
+// Copyright (c) Chao Wang <hit9@icloud.com>
+
 #include <v8.h>
 #include <node.h>
 #include "buf.hh"
 
 using namespace buf;
-
 
 #define ASSERT_ARGS_LEN(len)                                                 \
     if (args.Length() != len) {                                              \
@@ -12,7 +14,7 @@ using namespace buf;
         NanThrowError(buf_str(err));                                         \
         buf_free(err);                                                       \
         return;                                                              \
-    }                                                                        \
+    }
 
 #define ASSERT_ARGS_LEN_GT(len)                                              \
     if (!(args.Length() > len)) {                                            \
@@ -21,7 +23,7 @@ using namespace buf;
         NanThrowError(buf_str(err));                                         \
         buf_free(err);                                                       \
         return;                                                              \
-    }                                                                        \
+    }
 
 #define ASSERT_ARGS_LEN_LT(len)                                              \
     if (!(args.Length() < len)) {                                            \
@@ -30,7 +32,7 @@ using namespace buf;
         NanThrowError(buf_str(err));                                         \
         buf_free(err);                                                       \
         return;                                                              \
-    }                                                                        \
+    }
 
 #define ASSERT_UINT8(val)                                                    \
     if (!val->IsUint32() || val->Uint32Value() > 255) {                      \
@@ -47,20 +49,20 @@ using namespace buf;
         return NanThrowTypeError("requires integer");                        \
      }
 
-
 #define ASSERT_BUF_OK(operation)                                             \
     int buf_ret = operation;                                                 \
                                                                              \
     if (buf_ret == BUF_ENOMEM) {                                             \
         return NanThrowError("No memory");                                   \
     }                                                                        \
+                                                                             \
     if (buf_ret != BUF_OK) {                                                 \
         return NanThrowError("Buf operation failed") ;                       \
-    }                                                                        \
+    }
 
 #define TOCSTRING(v8string)                                                  \
     String::Utf8Value tmp(v8string);                                         \
-    char *str = *tmp;                                                        \
+    char *str = *tmp;
 
 
 Persistent<FunctionTemplate> Buf::constructor;
@@ -73,9 +75,8 @@ Buf::~Buf() {
     buf_free(buf);
 }
 
-/**
- * Register prototypes and exports
- */
+// Register prototypes and exports
+//
 void Buf::Initialize(Handle<Object> exports) {
     NanScope();
     // Constructor
@@ -130,9 +131,8 @@ bool Buf::IsStringOrBuffer(Handle<Object> obj) {
     return obj->IsString() || Buffer::HasInstance(obj);
 }
 
-/**
- * Public API: - new Buf  O(1)
- */
+// Public API: - new Buf  O(1)
+//
 NAN_METHOD(Buf::New) {
     NanScope();
     ASSERT_ARGS_LEN(1);
@@ -158,44 +158,39 @@ NAN_METHOD(Buf::New) {
     }
 }
 
-/**
- * Public API: - Buf.isBuf O(1)
- */
+// Public API: - Buf.isBuf O(1)
+//
 NAN_METHOD(Buf::IsBuf) {
     NanScope();
     ASSERT_ARGS_LEN(1);
     NanReturnValue(NanNew<Boolean>(Buf::HasInstance(args[0])));
 }
 
-/**
- * Public API: - buf.cap O(1)
- */
+// Public API: - buf.cap O(1)
+//
 NAN_GETTER(Buf::GetCap) {
     NanScope();
     Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
     NanReturnValue(NanNew<Number>(holder->buf->cap));
 }
 
-/**
- * Public API: - buf.cap (disabled helper) O(1)
- */
+// Public API: - buf.cap (disabled helper) O(1)
+//
 NAN_SETTER(Buf::SetCap) {
     NanScope();
     NanThrowError("cannot set buf.cap");
 }
 
-/**
- * Public API: - buf.length O(1)
- */
+// Public API: - buf.length O(1)
+//
 NAN_GETTER(Buf::GetLength) {
     NanScope();
     Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
     NanReturnValue(NanNew<Number>(holder->buf->size));
 }
 
-/**
- * Public API: - buf.length O(1)/O(k)
- */
+// Public API: - buf.length O(1)/O(k)
+//
 NAN_SETTER(Buf::SetLength) {
     NanScope();
     ASSERT_UINT32(value);
@@ -219,9 +214,8 @@ NAN_SETTER(Buf::SetLength) {
     NanReturnValue(NanNew<Number>(buf->size));
 }
 
-/**
- * Public API: - buf[idx] O(1)
- */
+// Public API: - buf[idx] O(1)
+//
 NAN_INDEX_GETTER(Buf::GetIndex) {
     NanScope();
 
@@ -234,9 +228,8 @@ NAN_INDEX_GETTER(Buf::GetIndex) {
     }
 }
 
-/**
- * Public API: - buf[idx] = 'c' or buf[idx] = 97. O(1)
- */
+// Public API: - buf[idx] = 'c' or buf[idx] = 97. O(1)
+//
 NAN_INDEX_SETTER(Buf::SetIndex) {
     NanScope();
 
@@ -269,9 +262,8 @@ NAN_INDEX_SETTER(Buf::SetIndex) {
     NanReturnValue(NanNew(value));
 }
 
-/**
- * Public API: - Buf.prototype.charAt O(1)
- */
+// Public API: - Buf.prototype.charAt O(1)
+//
 NAN_METHOD(Buf::CharAt) {
     NanScope();
     ASSERT_ARGS_LEN(1);
@@ -291,9 +283,8 @@ NAN_METHOD(Buf::CharAt) {
     }
 }
 
-/**
- * Public API: - Buf.prototype.grow O(1)
- */
+// Public API: - Buf.prototype.grow O(1)
+//
 NAN_METHOD(Buf::Grow) {
     NanScope();
     ASSERT_ARGS_LEN(1);
@@ -303,9 +294,8 @@ NAN_METHOD(Buf::Grow) {
     NanReturnValue(NanNew<Number>(holder->buf->cap));
 }
 
-/**
- * Public API: - Buf.prototype.put O(k)
- */
+// Public API: - Buf.prototype.put O(k)
+//
 NAN_METHOD(Buf::Put) {
     NanScope();
     ASSERT_ARGS_LEN(1);
@@ -346,9 +336,8 @@ NAN_METHOD(Buf::Put) {
     NanReturnValue(NanNew<Number>(buf->size - size));
 }
 
-/**
- * Public APi: - Buf.prototype.pop O(1)
- */
+// Public APi: - Buf.prototype.pop O(1)
+//
 NAN_METHOD(Buf::Pop) {
     NanScope();
     ASSERT_ARGS_LEN(1);
@@ -359,9 +348,8 @@ NAN_METHOD(Buf::Pop) {
                 buf_rrm(holder->buf, args[0]->Uint32Value())));
 }
 
-/**
- * Public API: - Buf.prototype.cmp O(n)
- */
+// Public API: - Buf.prototype.cmp O(n)
+//
 NAN_METHOD(Buf::Cmp) {
     NanScope();
     ASSERT_ARGS_LEN(1);
@@ -383,9 +371,8 @@ NAN_METHOD(Buf::Cmp) {
     }
 }
 
-/**
- * Public API: - Buf.prototype.equals O(n)
- */
+// Public API: - Buf.prototype.equals O(n)
+//
 NAN_METHOD(Buf::Equals) {
     NanScope();
     ASSERT_ARGS_LEN(1);
@@ -407,10 +394,8 @@ NAN_METHOD(Buf::Equals) {
     }
 }
 
-
-/**
- * Public API: - Buf.prototype.toString  O(1)
- */
+// Public API: - Buf.prototype.toString  O(1)
+//
 NAN_METHOD(Buf::ToString) {
     NanScope();
     ASSERT_ARGS_LEN(0);
@@ -419,9 +404,8 @@ NAN_METHOD(Buf::ToString) {
     NanReturnValue(NanNew<String>(buf_str(holder->buf)));
 }
 
-/**
- * Public API: - Buf.prototype.clear O(1)
- */
+// Public API: - Buf.prototype.clear O(1)
+//
 NAN_METHOD(Buf::Clear) {
     NanScope();
     ASSERT_ARGS_LEN(0);
@@ -432,9 +416,8 @@ NAN_METHOD(Buf::Clear) {
     NanReturnValue(NanNew<Number>(size));
 }
 
-/**
- * Public API: - Buf.prototype.bytes
- */
+// Public API: - Buf.prototype.bytes
+//
 NAN_METHOD(Buf::Bytes) {
     NanScope();
     ASSERT_ARGS_LEN(0);
@@ -451,9 +434,8 @@ NAN_METHOD(Buf::Bytes) {
     NanReturnValue(bytes);
 }
 
-/**
- * Public API: - Buf.prototype.copy O(n)
- */
+// Public API: - Buf.prototype.copy O(n)
+//
 NAN_METHOD(Buf::Copy) {
     NanScope();
     Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
@@ -465,9 +447,8 @@ NAN_METHOD(Buf::Copy) {
     NanReturnValue(inst);
 }
 
-/**
- * Public API: - Buf.prototype.slice O(k)
- */
+// Public API: - Buf.prototype.slice O(k)
+//
 NAN_METHOD(Buf::Slice) {
     NanScope();
     ASSERT_ARGS_LEN_GT(0);
@@ -518,9 +499,8 @@ NAN_METHOD(Buf::Slice) {
     NanReturnValue(inst);
 }
 
-/**
- * Public API: - Buf.prototype.indexOf. Boyer Moore
- */
+// Public API: - Buf.prototype.indexOf. Boyer Moore
+//
 NAN_METHOD(Buf::IndexOf) {
     NanScope();
     ASSERT_ARGS_LEN_GT(0);
@@ -551,9 +531,8 @@ NAN_METHOD(Buf::IndexOf) {
     }
 }
 
-/**
- * Public API: - Buf.prototype.isSpace. O(n)
- */
+// Public API: - Buf.prototype.isSpace. O(n)
+//
 NAN_METHOD(Buf::IsSpace) {
     NanScope();
     ASSERT_ARGS_LEN(0);
@@ -561,9 +540,8 @@ NAN_METHOD(Buf::IsSpace) {
     NanReturnValue(NanNew<Boolean>(buf_isspace(holder->buf)));
 }
 
-/**
- * Public API: - Buf.prototype.startsWith. O(min(n, k))
- */
+// Public API: - Buf.prototype.startsWith. O(min(n, k))
+//
 NAN_METHOD(Buf::StartsWith) {
     NanScope();
     ASSERT_ARGS_LEN(1);
@@ -582,9 +560,8 @@ NAN_METHOD(Buf::StartsWith) {
     }
 }
 
-/**
- * Public API: - Buf.prototype.endsWith. O(min(n, k))
- */
+// Public API: - Buf.prototype.endsWith. O(min(n, k))
+//
 NAN_METHOD(Buf::EndsWith) {
     NanScope();
     ASSERT_ARGS_LEN(1);
@@ -603,9 +580,8 @@ NAN_METHOD(Buf::EndsWith) {
     }
 }
 
-/**
- * Public API: - Buf.prototype.inspect
- */
+// Public API: - Buf.prototype.inspect
+//
 NAN_METHOD(Buf::Inspect) {
     NanScope();
     Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
