@@ -396,10 +396,22 @@ NAN_METHOD(Buf::Pop) {
 NAN_METHOD(Buf::Cmp) {
     NanScope();
     ASSERT_ARGS_LEN(1);
-    ASSERT_STRING_LIKE(args[0]);
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    char *str = Buf::StringLikeToChars(args[0]);
-    NanReturnValue(NanNew<Number>(buf_cmp(self->buf, str)));
+
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    buf_t *buf = holder->buf;
+
+    if (Buf::HasInstance(args[0])) {
+        // Buf
+        Buf *b = ObjectWrap::Unwrap<Buf>(args[0]->ToObject());
+        NanReturnValue(NanNew<Number>(buf_cmp(buf, buf_str(b->buf))));
+    } else if (Buf::IsStringOrBuffer(args[0])) {
+        // String/Buffer
+        TOCSTRING(args[0]->ToString());
+        NanReturnValue(NanNew<Number>(buf_cmp(buf, str)));
+    } else {
+        // TODO: Array
+        NanThrowTypeError("requires string/buffer/buf");
+    }
 }
 
 /**
@@ -408,10 +420,22 @@ NAN_METHOD(Buf::Cmp) {
 NAN_METHOD(Buf::Equals) {
     NanScope();
     ASSERT_ARGS_LEN(1);
-    ASSERT_STRING_LIKE(args[0]);
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    char *str = Buf::StringLikeToChars(args[0]);
-    NanReturnValue(NanNew<Boolean>(buf_equals(self->buf, str)));
+
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    buf_t *buf = holder->buf;
+
+    if (Buf::HasInstance(args[0])) {
+        // Buf
+        Buf *b = ObjectWrap::Unwrap<Buf>(args[0]->ToObject());
+        NanReturnValue(NanNew<Boolean>(buf_equals(buf, buf_str(b->buf))));
+    } else if (Buf::IsStringOrBuffer(args[0])) {
+        // String/Buffer
+        TOCSTRING(args[0]->ToString());
+        NanReturnValue(NanNew<Boolean>(buf_equals(buf, str)));
+    } else {
+        // TODO: Array
+        NanThrowTypeError("requires string/buffer/buf");
+    }
 }
 
 
