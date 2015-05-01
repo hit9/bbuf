@@ -5,11 +5,6 @@
 using namespace buf;
 
 
-#define ASSERT_STRING_LIKE(val)                                              \
-    if (!Buf::IsStringLike(val)) {                                           \
-        return NanThrowTypeError("requires buf/string/buffer");              \
-     }                                                                       \
-
 #define ASSERT_ARGS_LEN(len)                                                 \
     if (args.Length() != len) {                                              \
         buf_t *err = buf_new(21);                                            \
@@ -133,32 +128,6 @@ bool Buf::IsStringOrBuffer(Handle<Value> val) {
 
 bool Buf::IsStringOrBuffer(Handle<Object> obj) {
     return obj->IsString() || Buffer::HasInstance(obj);
-}
-
-bool Buf::IsStringLike(Handle<Value> val) {
-    if (val->IsNumber())
-        return false;
-    return Buf::IsStringLike(val.As<Object>());
-}
-
-bool Buf::IsStringLike(Handle<Object> obj) {
-    return obj->IsString() || Buffer::HasInstance(obj) ||
-        Buf::HasInstance(obj);
-}
-
-char *Buf::StringLikeToChars(Handle<Value> val) {
-    return Buf::StringLikeToChars(val.As<Object>());
-}
-
-char *Buf::StringLikeToChars(Handle<Object> obj) {
-    if (Buf::HasInstance(obj)) {
-        Buf *buf = ObjectWrap::Unwrap<Buf>(obj);
-        return buf_str(buf->buf);
-    } else {
-        Local<String> val = obj->ToString();
-        String::Utf8Value str(val);
-        return (char *)*str;
-    }
 }
 
 /**

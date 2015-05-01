@@ -45,10 +45,6 @@ public:
 private:
     static bool IsStringOrBuffer(Handle<Value> val);
     static bool IsStringOrBuffer(Handle<Object> obj);
-    static bool IsStringLike(Handle<Value> val);
-    static bool IsStringLike(Handle<Object> obj);
-    static char *StringLikeToChars(Handle<Value> val);
-    static char *StringLikeToChars(Handle<Object> obj);
     buf_t* buf;
 };
 };
