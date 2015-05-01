@@ -52,11 +52,13 @@ using namespace buf;
         return NanThrowTypeError("requires integer");                        \
      }
 
-#define ASSERT_BUF_OK(retv)                                                  \
-    if (retv == BUF_ENOMEM) {                                                \
+#define ASSERT_BUF_OK(operation)                                             \
+    int buf_ret = operation;                                                 \
+                                                                             \
+    if (buf_ret == BUF_ENOMEM) {                                             \
         return NanThrowError("No memory");                                   \
     }                                                                        \
-    if (retv != BUF_OK) {                                                    \
+    if (buf_ret != BUF_OK) {                                                 \
         return NanThrowError("Buf operation failed") ;                       \
     }                                                                        \
 
@@ -224,8 +226,7 @@ NAN_SETTER(Buf::SetLength) {
 
     if (len > buf->size) {
         // append space
-        int retv = buf_grow(buf, len);
-        ASSERT_BUF_OK(retv);
+        ASSERT_BUF_OK(buf_grow(buf, len));
         while (buf->size < len)
             buf_putc(buf, 0x20);
     }
@@ -305,8 +306,7 @@ NAN_METHOD(Buf::Grow) {
     ASSERT_ARGS_LEN(1);
     ASSERT_UINT32(args[0]);
     Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    int retv = buf_grow(self->buf, args[0]->Uint32Value());
-    ASSERT_BUF_OK(retv);
+    ASSERT_BUF_OK(buf_grow(self->buf, args[0]->Uint32Value()));
     NanReturnValue(NanNew<Number>(self->buf->cap));
 }
 
@@ -321,13 +321,10 @@ NAN_METHOD(Buf::Put) {
     buf_t *buf = self->buf;
     size_t size = buf->size;
 
-    int retv;
-
     if (Buf::IsStringLike(args[0])) {
         // string/buffer/buf
         char *str = Buf::StringLikeToChars(args[0]);
-        retv = buf_puts(buf, str);
-        ASSERT_BUF_OK(retv);
+        ASSERT_BUF_OK(buf_puts(buf, str));
     } else if (args[0]->IsArray()) {
         // bytes array
         Local<Value> item;
@@ -335,8 +332,7 @@ NAN_METHOD(Buf::Put) {
 
         size_t idx;
         size_t len = arr->Length();
-        retv = buf_grow(buf, buf->size + len);
-        ASSERT_BUF_OK(retv);
+        ASSERT_BUF_OK(buf_grow(buf, buf->size + len));
 
         for (idx = 0; idx < len; idx++) {
             item = arr->Get(idx);
@@ -344,9 +340,9 @@ NAN_METHOD(Buf::Put) {
             buf_putc(buf, item->Uint32Value());
         }
     } else if (args[0]->IsNumber()) {
+        // single byte
         ASSERT_UINT8(args[0]);
-        retv = buf_putc(buf, args[0]->Uint32Value());
-        ASSERT_BUF_OK(retv);
+        ASSERT_BUF_OK(buf_putc(buf, args[0]->Uint32Value()));
     } else {
         return NanThrowTypeError("requires string/buffer/buf/array/number");
     }
@@ -478,8 +474,7 @@ NAN_METHOD(Buf::Copy) {
     Local<FunctionTemplate> ctor = NanNew<FunctionTemplate>(constructor);
     Local<Object> inst = ctor->GetFunction()->NewInstance(1, argv);
     Buf *copy = ObjectWrap::Unwrap<Buf>(inst);
-    int retv = buf_put(copy->buf, self->buf->data, self->buf->size);
-    ASSERT_BUF_OK(retv);
+    ASSERT_BUF_OK(buf_put(copy->buf, self->buf->data, self->buf->size));
     NanReturnValue(inst);
 }
 
@@ -526,8 +521,7 @@ NAN_METHOD(Buf::Slice) {
     if (begin >= end) len = 0;
 
     if (len > 0) {
-        int retv = buf_grow(copy->buf, len);
-        ASSERT_BUF_OK(retv);
+        ASSERT_BUF_OK(buf_grow(copy->buf, len));
     }
 
     size_t idx = 0;
