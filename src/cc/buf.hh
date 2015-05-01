@@ -43,6 +43,8 @@ public:
     static NAN_INDEX_GETTER(GetIndex);
     static NAN_INDEX_SETTER(SetIndex);
 private:
+    static bool IsStringOrBuffer(Handle<Value> val);
+    static bool IsStringOrBuffer(Handle<Object> obj);
     static bool IsStringLike(Handle<Value> val);
     static bool IsStringLike(Handle<Object> obj);
     static char *StringLikeToChars(Handle<Value> val);

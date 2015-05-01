@@ -62,6 +62,11 @@ using namespace buf;
         return NanThrowError("Buf operation failed") ;                       \
     }                                                                        \
 
+#define TOCSTRING(v8string)                                                  \
+    String::Utf8Value tmp(v8string);                                         \
+    char *str = *tmp;                                                        \
+
+
 Persistent<FunctionTemplate> Buf::constructor;
 
 Buf::Buf(size_t unit) {
@@ -117,6 +122,16 @@ bool Buf::HasInstance(Handle<Value> val) {
 bool Buf::HasInstance(Handle<Object> obj) {
     return obj->InternalFieldCount() == 1 &&
         NanHasInstance(constructor, obj);
+}
+
+bool Buf::IsStringOrBuffer(Handle<Value> val) {
+    if (val->IsNumber())
+        return false;
+    return Buf::IsStringOrBuffer(val.As<Object>());
+}
+
+bool Buf::IsStringOrBuffer(Handle<Object> obj) {
+    return obj->IsString() || Buffer::HasInstance(obj);
 }
 
 bool Buf::IsStringLike(Handle<Value> val) {
@@ -317,19 +332,22 @@ NAN_METHOD(Buf::Put) {
     NanScope();
     ASSERT_ARGS_LEN(1);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    buf_t *buf = self->buf;
+    Buf *ins = ObjectWrap::Unwrap<Buf>(args.Holder());
+    buf_t *buf = ins->buf;
     size_t size = buf->size;
 
-    if (Buf::IsStringLike(args[0])) {
-        // string/buffer/buf
-        char *str = Buf::StringLikeToChars(args[0]);
+    if (Buf::HasInstance(args[0])) {
+        // Buf
+        Buf *b = ObjectWrap::Unwrap<Buf>(args[0]->ToObject());
+        ASSERT_BUF_OK(buf_put(buf, b->buf->data, b->buf->size));
+    } else if (Buf::IsStringOrBuffer(args[0])) {
+        // String/Buffer
+        TOCSTRING(args[0]->ToString());
         ASSERT_BUF_OK(buf_puts(buf, str));
     } else if (args[0]->IsArray()) {
-        // bytes array
+        // Array
         Local<Value> item;
         Handle<Array> arr = Handle<Array>::Cast(args[0]);
-
         size_t idx;
         size_t len = arr->Length();
         ASSERT_BUF_OK(buf_grow(buf, buf->size + len));
@@ -337,10 +355,9 @@ NAN_METHOD(Buf::Put) {
         for (idx = 0; idx < len; idx++) {
             item = arr->Get(idx);
             ASSERT_UINT8(item);
-            buf_putc(buf, item->Uint32Value());
+            ASSERT_BUF_OK(buf_putc(buf, item->Uint32Value()));
         }
     } else if (args[0]->IsNumber()) {
-        // single byte
         ASSERT_UINT8(args[0]);
         ASSERT_BUF_OK(buf_putc(buf, args[0]->Uint32Value()));
     } else {
