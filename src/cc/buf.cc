@@ -52,14 +52,13 @@ using namespace buf;
         return NanThrowTypeError("requires integer");                        \
      }
 
-#define ASSERT_BUF_OK(retv) {                                                \
+#define ASSERT_BUF_OK(retv)                                                  \
     if (retv == BUF_ENOMEM) {                                                \
         return NanThrowError("No memory");                                   \
     }                                                                        \
     if (retv != BUF_OK) {                                                    \
         return NanThrowError("Buf operation failed") ;                       \
     }                                                                        \
- }
 
 Persistent<FunctionTemplate> Buf::constructor;
 
