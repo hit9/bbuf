@@ -271,8 +271,8 @@ NAN_INDEX_GETTER(Buf::GetIndex) {
 NAN_INDEX_SETTER(Buf::SetIndex) {
     NanScope();
 
-    Buf *inst = ObjectWrap::Unwrap<Buf>(args.Holder());
-    buf_t *buf = inst->buf;
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    buf_t *buf = holder->buf;
 
     if (!(index < buf->size))
         return NanThrowError("index should be 0 ~ size-1");
@@ -341,8 +341,8 @@ NAN_METHOD(Buf::Put) {
     NanScope();
     ASSERT_ARGS_LEN(1);
 
-    Buf *ins = ObjectWrap::Unwrap<Buf>(args.Holder());
-    buf_t *buf = ins->buf;
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    buf_t *buf = holder->buf;
     size_t size = buf->size;
 
     if (Buf::HasInstance(args[0])) {
