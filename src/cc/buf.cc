@@ -52,6 +52,7 @@ using namespace buf;
         return NanThrowTypeError("requires integer");                        \
      }
 
+
 #define ASSERT_BUF_OK(operation)                                             \
     int buf_ret = operation;                                                 \
                                                                              \
@@ -270,25 +271,33 @@ NAN_INDEX_GETTER(Buf::GetIndex) {
 NAN_INDEX_SETTER(Buf::SetIndex) {
     NanScope();
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    Buf *inst = ObjectWrap::Unwrap<Buf>(args.Holder());
+    buf_t *buf = inst->buf;
 
-    if (index >= self->buf->size) {
-        NanThrowError("index cannot larger than size");
-    } else {
-        if (Buf::IsStringLike(value)) {   // set as string
-            char *str = Buf::StringLikeToChars(value);
-            if (strlen(str) != 1) {
-                NanThrowError("requires only 1 byte char");
-            } else {
-                (self->buf->data)[index] = str[0];
-                NanReturnValue(NanNew<String>(str));
-            }
-        } else {
-            ASSERT_UINT8(value);
-            self->buf->data[index] = value->Uint32Value();
-            NanReturnValue(NanNew<Number>(self->buf->data[index]));
-        }
+    if (!(index < buf->size))
+        return NanThrowError("index should be 0 ~ size-1");
+
+    if (value->IsNumber()) {
+        // Byte
+        ASSERT_UINT8(value);
+        buf->data[index] = value->Uint32Value();
+    } else if (Buf::HasInstance(value)) {
+        // Buf
+        Buf *b = ObjectWrap::Unwrap<Buf>(value->ToObject());
+
+        if (b->buf->size != 1)
+            return NanThrowError("requires only 1 byte");
+        buf->data[index] = b->buf->data[0];
+    } else if (Buf::IsStringOrBuffer(value)) {
+        // String/Buffer
+        TOCSTRING(value->ToString());
+
+        if (strlen(str) != 1)
+            return NanThrowError("requires only 1 byte");
+        buf->data[index] = str[0];
     }
+
+    NanReturnValue(NanNew(value));
 }
 
 /**
@@ -358,9 +367,11 @@ NAN_METHOD(Buf::Put) {
             ASSERT_BUF_OK(buf_putc(buf, item->Uint32Value()));
         }
     } else if (args[0]->IsNumber()) {
+        // Byte
         ASSERT_UINT8(args[0]);
         ASSERT_BUF_OK(buf_putc(buf, args[0]->Uint32Value()));
     } else {
+        // Bad type
         return NanThrowTypeError("requires string/buffer/buf/array/number");
     }
     NanReturnValue(NanNew<Number>(buf->size - size));
