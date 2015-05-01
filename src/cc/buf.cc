@@ -483,40 +483,6 @@ NAN_METHOD(Buf::Bytes) {
 }
 
 /**
- * Public API: - Buf.prototype.inspect
- */
-NAN_METHOD(Buf::Inspect) {
-    NanScope();
-    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
-    buf_t *buf = buf_new(holder->buf->unit);  // ensure not 0
-
-    buf_sprintf(buf, "<bbuf [%d]", holder->buf->size);
-
-    size_t idx;
-
-    for (idx = 0; idx < holder->buf->size; idx++) {
-        if (idx == 0)
-            buf_putc(buf, ' ');
-
-        if (idx > 32) {  // max display 33 chars
-            buf_sprintf(buf, "..");
-            break;
-        } else {
-            buf_sprintf(buf, "%02x", (holder->buf->data)[idx]);
-        }
-
-        if (idx != holder->buf->size - 1)
-            buf_putc(buf, ' ');
-    }
-
-    buf_putc(buf, '>');
-
-    Local<Value> val = NanNew<String>(buf_str(buf));
-    buf_free(buf);
-    NanReturnValue(val);
-}
-
-/**
  * Public API: - Buf.prototype.copy O(n)
  */
 NAN_METHOD(Buf::Copy) {
@@ -639,4 +605,38 @@ NAN_METHOD(Buf::EndsWith) {
     Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
     char *str = Buf::StringLikeToChars(args[0]);
     NanReturnValue(NanNew<Boolean>(buf_endswith(holder->buf, str)));
+}
+
+/**
+ * Public API: - Buf.prototype.inspect
+ */
+NAN_METHOD(Buf::Inspect) {
+    NanScope();
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    buf_t *buf = buf_new(holder->buf->unit);  // ensure not 0
+
+    buf_sprintf(buf, "<bbuf [%d]", holder->buf->size);
+
+    size_t idx;
+
+    for (idx = 0; idx < holder->buf->size; idx++) {
+        if (idx == 0)
+            buf_putc(buf, ' ');
+
+        if (idx > 32) {  // max display 33 chars
+            buf_sprintf(buf, "..");
+            break;
+        } else {
+            buf_sprintf(buf, "%02x", (holder->buf->data)[idx]);
+        }
+
+        if (idx != holder->buf->size - 1)
+            buf_putc(buf, ' ');
+    }
+
+    buf_putc(buf, '>');
+
+    Local<Value> val = NanNew<String>(buf_str(buf));
+    buf_free(buf);
+    NanReturnValue(val);
 }
