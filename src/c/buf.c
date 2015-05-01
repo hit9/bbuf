@@ -356,10 +356,26 @@ buf_reverse(buf_t *buf)
 }
 
 /**
+ * Search char in buf. O(n)
+ */
+size_t
+buf_indexc(buf_t *buf, char ch, size_t start)
+{
+    size_t idx;
+
+    for (idx = start; idx < buf->size && buf->data[idx] != (uint8_t)ch;
+            idx++);
+
+    if (idx < buf->size)
+        return idx;  // match
+    return buf->size;
+}
+
+/**
  * Search string in buf by Boyer-Moore algorithm.
  */
 size_t
-buf_index(buf_t *buf, char *sub, size_t start)
+buf_indexs(buf_t *buf, char *sub, size_t start)
 {
     assert(buf != NULL);
 

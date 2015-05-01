@@ -516,10 +516,10 @@ NAN_METHOD(Buf::IndexOf) {
 
     if (Buf::HasInstance(args[0])) {
         Buf *b = ObjectWrap::Unwrap<Buf>(args[0]->ToObject());
-        idx = buf_index(buf, buf_str(b->buf), start);
+        idx = buf_indexs(buf, buf_str(b->buf), start);
     } else if (Buf::IsStringOrBuffer(args[0])) {
         TOCSTRING(args[0]->ToString());
-        idx = buf_index(buf, str, start);
+        idx = buf_indexs(buf, str, start);
     } else {
         return NanThrowTypeError("requires string/buffer/buf");
     }
