@@ -1,3 +1,6 @@
+// Bytes buffer addon with dynamic size for nodejs/iojs
+// Copyright (c) Chao Wang <hit9@icloud.com>
+
 #include <v8.h>
 #include <node.h>
 #include <buf.h>
