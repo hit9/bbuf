@@ -556,17 +556,26 @@ NAN_METHOD(Buf::IndexOf) {
     NanScope();
     ASSERT_ARGS_LEN_GT(0);
     ASSERT_ARGS_LEN_LT(3);
-    ASSERT_STRING_LIKE(args[0]);
 
     size_t start = 0;
     if (args.Length() == 2)
         start = args[1]->Uint32Value();
 
     Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
-    char *str = Buf::StringLikeToChars(args[0]);
-    size_t idx = buf_index(holder->buf, str, start);
+    buf_t *buf = holder->buf;
+    size_t idx = buf->size;
 
-    if (idx == holder->buf->size) {
+    if (Buf::HasInstance(args[0])) {
+        Buf *b = ObjectWrap::Unwrap<Buf>(args[0]->ToObject());
+        idx = buf_index(buf, buf_str(b->buf), start);
+    } else if (Buf::IsStringOrBuffer(args[0])) {
+        TOCSTRING(args[0]->ToString());
+        idx = buf_index(buf, str, start);
+    } else {
+        return NanThrowTypeError("requires string/buffer/buf");
+    }
+
+    if (idx == buf->size) {
         NanReturnValue(NanNew<Number>(-1));
     } else {
         NanReturnValue(NanNew<Number>(idx));
@@ -589,10 +598,19 @@ NAN_METHOD(Buf::IsSpace) {
 NAN_METHOD(Buf::StartsWith) {
     NanScope();
     ASSERT_ARGS_LEN(1);
-    ASSERT_STRING_LIKE(args[0]);
+
     Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
-    char *str = Buf::StringLikeToChars(args[0]);
-    NanReturnValue(NanNew<Boolean>(buf_startswith(holder->buf, str)));
+    buf_t *buf = holder->buf;
+
+    if (Buf::HasInstance(args[0])) {
+        Buf *b = ObjectWrap::Unwrap<Buf>(args[0]->ToObject());
+        NanReturnValue(NanNew<Boolean>(buf_startswith(buf, buf_str(b->buf))));
+    } else if (Buf::IsStringOrBuffer(args[0])) {
+        TOCSTRING(args[0]->ToString());
+        NanReturnValue(NanNew<Boolean>(buf_startswith(buf, str)));
+    } else {
+        NanThrowTypeError("requires string/buffer/buf");
+    }
 }
 
 /**
@@ -601,10 +619,19 @@ NAN_METHOD(Buf::StartsWith) {
 NAN_METHOD(Buf::EndsWith) {
     NanScope();
     ASSERT_ARGS_LEN(1);
-    ASSERT_STRING_LIKE(args[0]);
+
     Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
-    char *str = Buf::StringLikeToChars(args[0]);
-    NanReturnValue(NanNew<Boolean>(buf_endswith(holder->buf, str)));
+    buf_t *buf = holder->buf;
+
+    if (Buf::HasInstance(args[0])) {
+        Buf *b = ObjectWrap::Unwrap<Buf>(args[0]->ToObject());
+        NanReturnValue(NanNew<Boolean>(buf_endswith(buf, buf_str(b->buf))));
+    } else if (Buf::IsStringOrBuffer(args[0])) {
+        TOCSTRING(args[0]->ToString());
+        NanReturnValue(NanNew<Boolean>(buf_endswith(buf, str)));
+    } else {
+        NanThrowTypeError("requires string/buffer/buf");
+    }
 }
 
 /**
@@ -623,7 +650,7 @@ NAN_METHOD(Buf::Inspect) {
         if (idx == 0)
             buf_putc(buf, ' ');
 
-        if (idx > 32) {  // max display 33 chars
+        if (idx > 32) {  // max display 33 bytes
             buf_sprintf(buf, "..");
             break;
         } else {
