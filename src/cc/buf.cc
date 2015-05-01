@@ -203,8 +203,8 @@ NAN_METHOD(Buf::IsBuf) {
  */
 NAN_GETTER(Buf::GetCap) {
     NanScope();
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    NanReturnValue(NanNew<Number>(self->buf->cap));
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    NanReturnValue(NanNew<Number>(holder->buf->cap));
 }
 
 /**
@@ -220,8 +220,8 @@ NAN_SETTER(Buf::SetCap) {
  */
 NAN_GETTER(Buf::GetLength) {
     NanScope();
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    NanReturnValue(NanNew<Number>(self->buf->size));
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    NanReturnValue(NanNew<Number>(holder->buf->size));
 }
 
 /**
@@ -231,8 +231,8 @@ NAN_SETTER(Buf::SetLength) {
     NanScope();
     ASSERT_UINT32(value);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    buf_t *buf = self->buf;
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    buf_t *buf = holder->buf;
     size_t len = value->Uint32Value();
 
     if (len < buf->size) {
@@ -256,12 +256,12 @@ NAN_SETTER(Buf::SetLength) {
 NAN_INDEX_GETTER(Buf::GetIndex) {
     NanScope();
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
 
-    if (index >= self->buf->size) {
+    if (index >= holder->buf->size) {
         NanReturnUndefined();
     } else {
-        NanReturnValue(NanNew<Number>(self->buf->data[index]));
+        NanReturnValue(NanNew<Number>(holder->buf->data[index]));
     }
 }
 
@@ -307,17 +307,17 @@ NAN_METHOD(Buf::CharAt) {
     NanScope();
     ASSERT_ARGS_LEN(1);
     ASSERT_UINT32(args[0]);
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
     size_t idx = args[0]->Uint32Value();
 
-    if (idx >= self->buf->size) {
+    if (idx >= holder->buf->size) {
         NanReturnUndefined();
     } else {
         // To make an array sized 2 but not 1:
         // on some plats, this `{0}` wont tell v8 where the
         // '\0' terminates the string.
         char s[2] = {0, 0};
-        s[0] = self->buf->data[idx];
+        s[0] = holder->buf->data[idx];
         NanReturnValue(NanNew<String>(s));
     }
 }
@@ -329,9 +329,9 @@ NAN_METHOD(Buf::Grow) {
     NanScope();
     ASSERT_ARGS_LEN(1);
     ASSERT_UINT32(args[0]);
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    ASSERT_BUF_OK(buf_grow(self->buf, args[0]->Uint32Value()));
-    NanReturnValue(NanNew<Number>(self->buf->cap));
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    ASSERT_BUF_OK(buf_grow(holder->buf, args[0]->Uint32Value()));
+    NanReturnValue(NanNew<Number>(holder->buf->cap));
 }
 
 /**
@@ -385,9 +385,9 @@ NAN_METHOD(Buf::Pop) {
     ASSERT_ARGS_LEN(1);
     ASSERT_UINT32(args[0]);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
     NanReturnValue(NanNew<Number>(
-                buf_rrm(self->buf, args[0]->Uint32Value())));
+                buf_rrm(holder->buf, args[0]->Uint32Value())));
 }
 
 /**
@@ -446,8 +446,8 @@ NAN_METHOD(Buf::ToString) {
     NanScope();
     ASSERT_ARGS_LEN(0);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    NanReturnValue(NanNew<String>(buf_str(self->buf)));
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    NanReturnValue(NanNew<String>(buf_str(holder->buf)));
 }
 
 /**
@@ -457,9 +457,9 @@ NAN_METHOD(Buf::Clear) {
     NanScope();
     ASSERT_ARGS_LEN(0);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    size_t size = self->buf->size;
-    buf_clear(self->buf);
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    size_t size = holder->buf->size;
+    buf_clear(holder->buf);
     NanReturnValue(NanNew<Number>(size));
 }
 
@@ -470,10 +470,10 @@ NAN_METHOD(Buf::Bytes) {
     NanScope();
     ASSERT_ARGS_LEN(0);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
 
     size_t idx;
-    buf_t *buf = self->buf;
+    buf_t *buf = holder->buf;
 
     Local<Array> bytes(NanNew<Array>());
 
@@ -487,14 +487,14 @@ NAN_METHOD(Buf::Bytes) {
  */
 NAN_METHOD(Buf::Inspect) {
     NanScope();
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    buf_t *buf = buf_new(self->buf->unit);  // ensure not 0
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    buf_t *buf = buf_new(holder->buf->unit);  // ensure not 0
 
-    buf_sprintf(buf, "<bbuf [%d]", self->buf->size);
+    buf_sprintf(buf, "<bbuf [%d]", holder->buf->size);
 
     size_t idx;
 
-    for (idx = 0; idx < self->buf->size; idx++) {
+    for (idx = 0; idx < holder->buf->size; idx++) {
         if (idx == 0)
             buf_putc(buf, ' ');
 
@@ -502,10 +502,10 @@ NAN_METHOD(Buf::Inspect) {
             buf_sprintf(buf, "..");
             break;
         } else {
-            buf_sprintf(buf, "%02x", (self->buf->data)[idx]);
+            buf_sprintf(buf, "%02x", (holder->buf->data)[idx]);
         }
 
-        if (idx != self->buf->size - 1)
+        if (idx != holder->buf->size - 1)
             buf_putc(buf, ' ');
     }
 
@@ -521,12 +521,12 @@ NAN_METHOD(Buf::Inspect) {
  */
 NAN_METHOD(Buf::Copy) {
     NanScope();
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    Local<Value> argv[1] = { NanNew<Number>(self->buf->unit) };
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    Local<Value> argv[1] = { NanNew<Number>(holder->buf->unit) };
     Local<FunctionTemplate> ctor = NanNew<FunctionTemplate>(constructor);
     Local<Object> inst = ctor->GetFunction()->NewInstance(1, argv);
     Buf *copy = ObjectWrap::Unwrap<Buf>(inst);
-    ASSERT_BUF_OK(buf_put(copy->buf, self->buf->data, self->buf->size));
+    ASSERT_BUF_OK(buf_put(copy->buf, holder->buf->data, holder->buf->size));
     NanReturnValue(inst);
 }
 
@@ -542,10 +542,10 @@ NAN_METHOD(Buf::Slice) {
     if (args.Length() > 1)
         ASSERT_INT32(args[1]);
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
 
     // make a copy
-    Local<Value> argv[1] = { NanNew<Number>(self->buf->unit) };
+    Local<Value> argv[1] = { NanNew<Number>(holder->buf->unit) };
     Local<FunctionTemplate> ctor = NanNew<FunctionTemplate>(constructor);
     Local<Object> inst = ctor->GetFunction()->NewInstance(1, argv);
     Buf *copy = ObjectWrap::Unwrap<Buf>(inst);
@@ -556,7 +556,7 @@ NAN_METHOD(Buf::Slice) {
     long end;
 
     size_t len;
-    size_t size = self->buf->size;
+    size_t size = holder->buf->size;
 
     if (args.Length() == 1)
         end = size;
@@ -579,7 +579,7 @@ NAN_METHOD(Buf::Slice) {
     size_t idx = 0;
 
     while (idx < len)
-        buf_putc(copy->buf, (self->buf->data)[begin + idx++]);
+        buf_putc(copy->buf, (holder->buf->data)[begin + idx++]);
     NanReturnValue(inst);
 }
 
@@ -596,11 +596,11 @@ NAN_METHOD(Buf::IndexOf) {
     if (args.Length() == 2)
         start = args[1]->Uint32Value();
 
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
     char *str = Buf::StringLikeToChars(args[0]);
-    size_t idx = buf_index(self->buf, str, start);
+    size_t idx = buf_index(holder->buf, str, start);
 
-    if (idx == self->buf->size) {
+    if (idx == holder->buf->size) {
         NanReturnValue(NanNew<Number>(-1));
     } else {
         NanReturnValue(NanNew<Number>(idx));
@@ -613,8 +613,8 @@ NAN_METHOD(Buf::IndexOf) {
 NAN_METHOD(Buf::IsSpace) {
     NanScope();
     ASSERT_ARGS_LEN(0);
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
-    NanReturnValue(NanNew<Boolean>(buf_isspace(self->buf)));
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
+    NanReturnValue(NanNew<Boolean>(buf_isspace(holder->buf)));
 }
 
 /**
@@ -624,9 +624,9 @@ NAN_METHOD(Buf::StartsWith) {
     NanScope();
     ASSERT_ARGS_LEN(1);
     ASSERT_STRING_LIKE(args[0]);
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
     char *str = Buf::StringLikeToChars(args[0]);
-    NanReturnValue(NanNew<Boolean>(buf_startswith(self->buf, str)));
+    NanReturnValue(NanNew<Boolean>(buf_startswith(holder->buf, str)));
 }
 
 /**
@@ -636,7 +636,7 @@ NAN_METHOD(Buf::EndsWith) {
     NanScope();
     ASSERT_ARGS_LEN(1);
     ASSERT_STRING_LIKE(args[0]);
-    Buf *self = ObjectWrap::Unwrap<Buf>(args.Holder());
+    Buf *holder = ObjectWrap::Unwrap<Buf>(args.Holder());
     char *str = Buf::StringLikeToChars(args[0]);
-    NanReturnValue(NanNew<Boolean>(buf_endswith(self->buf, str)));
+    NanReturnValue(NanNew<Boolean>(buf_endswith(holder->buf, str)));
 }
