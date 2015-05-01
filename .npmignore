@@ -1,0 +1,6 @@
+bench/
+build/
+.travis.yml
+Makefile
+test.js
+t.js

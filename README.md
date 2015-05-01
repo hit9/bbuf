@@ -1,7 +1,9 @@
 bbuf
 ====
 
-Bytes buffer with dynamic size for nodejs/iojs, a bit like the `bytearray` in Python.
+Bytes buffer addon with dynamic size for nodejs/iojs, a bit like the `bytearray` in Python.
+
+[![Build Status](https://travis-ci.org/hit9/bbuf.svg)](https://travis-ci.org/hit9/bbuf)
 
 ```
 +------- cap -------+
