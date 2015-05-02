@@ -151,6 +151,14 @@ String.prototype.slice.apply(buf, [0, 1]);  // '你'
 buf.charAt(0) !== '你';  // true
 ```
 
+But you can use `Array.prototype.slice` to slice bytes
+from `buf`:
+
+```js
+buf.slice(0, 1).bytes();  // [ 228 ]
+[].slice.apply(buf, [0, 1]);  // [ 228 ]
+```
+
 ### buf.bytes()
 
 Get bytes array. O(n)
