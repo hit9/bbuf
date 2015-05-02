@@ -166,6 +166,7 @@ describe('bbuf', function() {
     assert(buf.indexOf('what') === -1);
     buf.clear();
     buf.put('明天');
+    assert(buf.indexOf(152) === 1);
     assert(buf.indexOf('what') === -1);
     assert(buf.indexOf('天') === 3);
     assert(buf.indexOf(buf.slice(1)) === 1);

@@ -190,15 +190,22 @@ buf.put('abcde');
 buf.indexOf('ab');  // 0
 buf.indexOf('what');  // -1
 buf.indexOf('d', 1);  // 3
+buf.indexOf(98);  // 1
 ```
 
 Don't use `String.prototype.indexOf` for `buf`, if you are trying to find the `byte index`
 instead of the `char index` (e.g. to parse bytes from a socket):
 
 ```js
-buf.put('你好')
-buf.indexOf('好')  // 3
-String.prototype.indexOf.call(buf, '好')  // 1
+buf.put('你好');
+buf.indexOf('好');  // 3
+String.prototype.indexOf.call(buf, '好');  // 1
+```
+
+But you can use `Array.prototype.indexOf` to search a single byte:
+
+```js
+[].indexOf.apply(buf, [228])  // 0
 ```
 
 ### buf.isSpace()

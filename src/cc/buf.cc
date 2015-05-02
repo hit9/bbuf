@@ -515,13 +515,19 @@ NAN_METHOD(Buf::IndexOf) {
     size_t idx = buf->size;
 
     if (Buf::HasInstance(args[0])) {
+        // Buf
         Buf *b = ObjectWrap::Unwrap<Buf>(args[0]->ToObject());
         idx = buf_indexs(buf, buf_str(b->buf), start);
     } else if (Buf::IsStringOrBuffer(args[0])) {
+        // String/Buffer
         TOCSTRING(args[0]->ToString());
         idx = buf_indexs(buf, str, start);
+    } else if (args[0]->IsNumber()) {
+        // Byte
+        ASSERT_UINT8(args[0]);
+        idx = buf_indexc(buf, args[0]->Uint32Value(), start);
     } else {
-        return NanThrowTypeError("requires string/buffer/buf");
+        return NanThrowTypeError("requires string/buffer/buf/number");
     }
 
     if (idx == buf->size) {
