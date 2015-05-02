@@ -1,4 +1,4 @@
-// Bytes buffer addon with dynamic size for nodejs/iojs
+// Dynamic bytes buffer for nodejs/iojs.
 // Copyright (c) Chao Wang <hit9@icloud.com>
 
 #include <v8.h>
