@@ -36,16 +36,16 @@ extern "C" {
 #define BUF_MAX_SIZE 16 * 1024 * 1024  //16mb
 
 typedef enum {
-    BUF_OK = 0,
-    BUF_ENOMEM = 1,
-    BUF_EFAILED = 2,
+	BUF_OK = 0,
+	BUF_ENOMEM = 1,
+	BUF_EFAILED = 2,
 } buf_error_t;
 
 typedef struct buf_st {
-    uint8_t *data;      /* real data */
-    size_t size;        /* real data size */
-    size_t cap;         /* buf cap */
-    size_t unit;        /* reallocation unit size */
+	uint8_t *data;		/* real data */
+	size_t size;		/* real data size */
+	size_t cap;			/* buf cap */
+	size_t unit;		/* reallocation unit size */
 } buf_t;
 
 
